@@ -11,6 +11,8 @@ The roadmap is intentionally incremental. Later milestones describe direction ra
 - Exercise Formentation as a real external dependency.
 - Prefer public APIs over internal struct inspection.
 - Keep Phoenix LiveViews thin.
+- Keep the core plain Elixir; defer frameworks (including Ash) until a
+  resource demonstrably earns them.
 - Keep `Formentation.Form` authoritative for form runtime behavior.
 - Keep editor text distinct from last successfully accepted/compiled state.
 - Preserve the last good preview when editor input is temporarily invalid.
@@ -26,12 +28,14 @@ Introduce the application model that all later playground behavior will use.
 
 Key outcomes:
 
-- `FrmnPlay.Playground` Ash domain.
-- non-persistent `Session` Ash resource.
+- `FrmnPlay.Playground` public module (plain Elixir; Ash deliberately deferred).
+- non-persistent `Session` struct with pure transformation functions.
 - `Example` model and built-in example registry.
-- intent-named actions for editing, applying, preview validation/submission, loading examples, and reset.
+- the current proposal example converted to JSON Schema source and moved behind this model.
+- JSON parsing and the full `apply_sources` loop (parse → compile → replace accepted state), tested directly.
+- intent-named functions for editing, applying, preview validation/submission, loading examples, and reset.
 - explicit distinction between editor state and accepted/compiled state.
-- current hard-coded proposal example moved behind this model.
+- failed applies never overwrite the accepted form or its diagnostics.
 - LiveView reduced to UI/event orchestration.
 
 This milestone is specified in detail in [milestone-01-session-and-examples.md](milestone-01-session-and-examples.md).
@@ -40,7 +44,8 @@ This milestone is specified in detail in [milestone-01-session-and-examples.md](
 
 ### Milestone 2 — JSON Schema Playground MVP
 
-Build the first complete authoring loop:
+Expose the Session model (built and tested in Milestone 1) through the
+first complete authoring UI:
 
 ```text
 JSON Schema
@@ -66,6 +71,7 @@ Add a second declaration source without evaluating arbitrary code.
 Main addition:
 
 - restricted Elixir literal parser;
+- the `:map` source itself (Milestones 1–2 are JSON Schema only);
 - source switch between `:json_schema` and `:map`;
 - map presentation exposed honestly as inline/derived rather than forcing JSON-style UI hints onto the adapter.
 
@@ -162,6 +168,11 @@ M8 Sharing / Structured UI / Livebook
 
 This is an ordering recommendation, not a strict prohibition on small independent experiments.
 
+One known candidate for reordering: the Runtime Inspector (M5) needs no new
+Formentation API and delivers immediate user value, while the Definition
+Inspector (M4) is primarily a probe for public `Formentation.Info` API gaps.
+Swapping M4 and M5 is a legitimate outcome of the re-evaluation rule.
+
 ## What is deliberately not on the critical path
 
 The following may become useful later, but should not shape the first milestones:
@@ -173,7 +184,9 @@ The following may become useful later, but should not shape the first milestones
 - collaboration;
 - a general-purpose Formentation definition serialization format;
 - theme/plugin systems;
-- reimplementation of `Formentation.Form` state inside Ash.
+- Ash (or any framework layer) for the playground core — deferred until a
+  resource earns it, e.g. a persisted example lifecycle or shared sessions;
+- reimplementation of `Formentation.Form` state inside the Session.
 
 ## Re-evaluation rule
 

@@ -38,7 +38,7 @@ rendered form preserves the raw text
 
 ## Constraint
 
-Do not copy Form internals into Ash attributes merely to display them.
+Do not copy Form internals into Session fields merely to display them.
 
 Build the inspector as a projection of the current `%Formentation.Form{}` through public APIs.
 

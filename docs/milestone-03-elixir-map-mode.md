@@ -8,6 +8,8 @@ Planned; revisit after Milestone 2.
 
 Allow the playground to exercise Formentation's second built-in declaration source from editable text.
 
+Note: since Milestones 1–2 are JSON Schema only, this milestone introduces the `:map` source into the playground entirely — Session `source` switching, parser, and examples all first appear here.
+
 ## Primary problem
 
 A public playground must not evaluate arbitrary submitted Elixir code.

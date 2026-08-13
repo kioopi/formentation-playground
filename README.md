@@ -9,7 +9,7 @@ The playground is intended to be more than a demo. It is the first real downstre
 3. **Provide executable examples of supported and unsupported behavior.**
 4. **Act as a design probe for future Formentation APIs.**
 
-The application deliberately has **no database**. Interactive playground state initially lives in the LiveView process and is modeled through an Ash domain using non-persistent resources.
+The application deliberately has **no database**. Interactive playground state lives in the LiveView process and is modeled as a plain Elixir struct (`Session`) transformed by pure functions in a `FrmnPlay.Playground` core module. Ash was considered and deliberately deferred: nothing is persisted or queried, most Session fields are opaque runtime values owned by Formentation, and a functional core provides the same seam with less machinery. Ash will be reconsidered when a resource earns it (e.g. a persisted example lifecycle or shared sessions).
 
 ## Current state
 
@@ -68,22 +68,23 @@ validate / submit
 runtime state + candidate/submitted instance
 ```
 
-The first complete authoring workflow will use **JSON Schema**, because declaration, presentation hints, and initial data are all JSON documents and can be parsed safely without evaluating Elixir code.
+**JSON Schema is the declaration source from the beginning** — including the built-in Milestone 1 example — because declaration, presentation hints, and initial data are all JSON documents and can be parsed safely without evaluating Elixir code. This also means the full parse → compile → apply loop is implemented and testable from the first milestone.
 
-Elixir Map declarations will follow after the basic playground interaction model is stable.
+Elixir Map declarations will follow after the basic playground interaction model is stable (Milestone 3, via a restricted literal parser).
 
 ## Architecture
 
-The playground will use an Ash domain for application structure, but no persistence is required.
+The playground core is plain Elixir; no persistence is required.
 
 ```text
-FrmnPlay.Playground
+FrmnPlay.Playground        public module — the only API the web layer calls
 │
-├── Session
-│   ├── current editor text
-│   ├── last accepted source documents
+├── Session                plain struct + pure transformation functions
+│   ├── current editor text (declaration / presentation / data)
+│   ├── last accepted source documents (text + parsed)
 │   ├── current Formentation.Form
-│   ├── diagnostics
+│   ├── diagnostics (of the accepted form only)
+│   ├── apply errors (of the latest apply attempt)
 │   └── submission result
 │
 ├── Example
@@ -94,12 +95,17 @@ FrmnPlay.Playground
 │   └── later restricted Elixir literals
 │
 └── Phoenix LiveView
-    └── thin UI over Playground actions
+    └── thin UI over Playground functions
 ```
 
 `Formentation.Form` remains owned by Formentation. The playground orchestrates it; it does not duplicate its state model.
 
-The Session is **not** initially modeled with `AshStateMachine`. Playground state has several orthogonal dimensions — editor validity, dirty state, last successful compile, current preview runtime state, and submission state — so one exclusive state attribute would be misleading. These facts should instead be represented directly and exposed through calculations where useful.
+The Session has **no exclusive state attribute** (and no state machine). Playground state has several orthogonal dimensions — editor validity, dirty state, last successful compile, current preview runtime state, and submission state — so one lifecycle value would be misleading. These facts are represented directly and exposed through small derived-fact functions (`dirty?`, `has_preview?`, …).
+
+Two invariants anchor the model:
+
+1. **Editor text is not accepted state.** Invalid text in an editor is ordinary state and never destroys the last successfully compiled preview.
+2. **Diagnostics always describe the rendered form.** A failed apply records its errors in `apply_errors` and never overwrites the accepted form's diagnostics.
 
 ## Documentation
 
