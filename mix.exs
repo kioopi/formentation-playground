@@ -127,11 +127,6 @@ defmodule FrmnPlay.MixProject do
       skills: [
         location: ".claude/skills",
         build: [
-          "ash-framework": [
-            description:
-              "Use this skill working with Ash Framework or any of its extensions. Always consult this when making any domain changes, features or fixes.",
-            usage_rules: [:ash, ~r/^ash_/]
-          ],
           "phoenix-framework": [
             description:
               "Use this skill working with Phoenix Framework. Consult this when working with the web layer, controllers, views, liveviews etc.",
