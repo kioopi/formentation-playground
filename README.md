@@ -1,18 +1,122 @@
-# FrmnPlay
+# Formentation Playground
 
-To start your Phoenix server:
+An interactive Phoenix LiveView playground for [Formentation](https://github.com/kioopi/formentation).
 
-* Run `mix setup` to install and setup dependencies
-* Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+The playground is intended to be more than a demo. It is the first real downstream application of Formentation and should serve four purposes at once:
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+1. **Exercise the public API from outside the Formentation repository.**
+2. **Make declarations, presentation, compiled definitions, runtime state, diagnostics, and submission behavior inspectable.**
+3. **Provide executable examples of supported and unsupported behavior.**
+4. **Act as a design probe for future Formentation APIs.**
 
-Ready to run in production? Please [check our deployment guides](https://phoenix.hexdocs.pm/deployment.html).
+The application deliberately has **no database**. Interactive playground state initially lives in the LiveView process and is modeled through an Ash domain using non-persistent resources.
 
-## Learn more
+## Current state
 
-* Official website: https://www.phoenixframework.org/
-* Guides: https://phoenix.hexdocs.pm/overview.html
-* Docs: https://phoenix.hexdocs.pm
-* Forum: https://elixirforum.com/c/phoenix-forum
-* Source: https://github.com/phoenixframework/phoenix
+The repository already contains a working Phoenix application with Formentation installed as a real git dependency.
+
+A basic form is compiled and initialized through the public Formentation API, rendered with the Phoenix integration, and exercised through the ordinary LiveView lifecycle:
+
+```elixir
+{:ok, form_state, diagnostics} =
+  Formentation.form(declaration,
+    adapter: :map,
+    data: initial_data,
+    defaults: :apply
+  )
+```
+
+```elixir
+form_state = Formentation.Form.validate(form_state, params)
+```
+
+```elixir
+case Formentation.Form.submit(form_state, params) do
+  {:ok, instance, submitted_form} ->
+    # accepted submission
+
+  {:error, submitted_form} ->
+    # redisplay with errors/raw input
+end
+```
+
+The repository also has LiveView tests and real-browser Playwright coverage.
+
+## Planned playground model
+
+The target user-facing pipeline is:
+
+```text
+Declaration
+    +
+Presentation
+    +
+Initial instance
+    ↓
+parse
+    ↓
+Formentation compile / form initialization
+    ↓
+Definition + diagnostics
+    ↓
+Formentation.Form
+    ↓
+Phoenix rendering
+    ↓
+validate / submit
+    ↓
+runtime state + candidate/submitted instance
+```
+
+The first complete authoring workflow will use **JSON Schema**, because declaration, presentation hints, and initial data are all JSON documents and can be parsed safely without evaluating Elixir code.
+
+Elixir Map declarations will follow after the basic playground interaction model is stable.
+
+## Architecture
+
+The playground will use an Ash domain for application structure, but no persistence is required.
+
+```text
+FrmnPlay.Playground
+│
+├── Session
+│   ├── current editor text
+│   ├── last accepted source documents
+│   ├── current Formentation.Form
+│   ├── diagnostics
+│   └── submission result
+│
+├── Example
+│   └── built-in examples initially
+│
+├── Parser
+│   ├── JSON
+│   └── later restricted Elixir literals
+│
+└── Phoenix LiveView
+    └── thin UI over Playground actions
+```
+
+`Formentation.Form` remains owned by Formentation. The playground orchestrates it; it does not duplicate its state model.
+
+The Session is **not** initially modeled with `AshStateMachine`. Playground state has several orthogonal dimensions — editor validity, dirty state, last successful compile, current preview runtime state, and submission state — so one exclusive state attribute would be misleading. These facts should instead be represented directly and exposed through calculations where useful.
+
+## Documentation
+
+- [Roadmap](docs/roadmap.md)
+- [Milestone 1 — Session and Examples](docs/milestone-01-session-and-examples.md)
+- [Milestone 2 — JSON Schema Playground MVP](docs/milestone-02-json-schema-playground.md)
+- [Milestone 3 — Elixir Map Mode](docs/milestone-03-elixir-map-mode.md)
+- [Milestone 4 — Definition Inspector](docs/milestone-04-definition-inspector.md)
+- [Milestone 5 — Runtime Inspector](docs/milestone-05-runtime-inspector.md)
+- [Milestone 6 — Presentation Skeleton Generation](docs/milestone-06-presentation-skeleton.md)
+- [Milestone 7 — Dedicated Code Editors](docs/milestone-07-code-editors.md)
+- [Milestone 8 — Sharing, Structured Editing, and Livebook](docs/milestone-08-sharing-and-livebook.md)
+
+## Development principle
+
+Prefer a sequence of small vertical slices.
+
+Each milestone should exercise Formentation through its public API first. If the playground needs information or behavior that the public API cannot express cleanly, treat that as evidence for a possible Formentation change rather than reaching directly into internal structs.
+
+The roadmap is intentionally revisited milestone by milestone. Only the next milestone is specified in implementation detail; later milestone documents are placeholders for direction and exit criteria.
