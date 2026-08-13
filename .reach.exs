@@ -32,6 +32,7 @@
     public: [
       "FrmnPlay",
       "FrmnPlay.Mailer",
+      "FrmnPlay.Playground",
       "FrmnPlayWeb",
       "FrmnPlayWeb.Endpoint",
       "FrmnPlayWeb.Router",

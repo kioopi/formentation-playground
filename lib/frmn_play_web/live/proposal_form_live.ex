@@ -12,103 +12,17 @@ defmodule FrmnPlayWeb.ProposalFormLive do
   use FrmnPlayWeb, :live_view
 
   alias Formentation.Form
-
-  @declaration_json """
-  {
-    "type": "object",
-    "title": "Talk proposal",
-    "required": ["title", "email", "track"],
-    "properties": {
-      "title": {
-        "type": "string",
-        "title": "Talk title",
-        "minLength": 5,
-        "maxLength": 80,
-        "description": "The headline attendees see in the schedule."
-      },
-      "track": {
-        "type": "string",
-        "title": "Track",
-        "enum": ["Elixir", "Phoenix", "OTP", "Tooling"]
-      },
-      "level": {
-        "type": "string",
-        "title": "Audience level",
-        "enum": ["beginner", "intermediate", "advanced"]
-      },
-      "duration_minutes": {
-        "type": "integer",
-        "title": "Duration (minutes)",
-        "minimum": 5,
-        "maximum": 90,
-        "default": 30
-      },
-      "abstract": {
-        "type": "string",
-        "title": "Abstract",
-        "description": "A few sentences on what the talk covers."
-      },
-      "email": {
-        "type": "string",
-        "title": "Speaker email",
-        "format": "email",
-        "minLength": 3
-      },
-      "preferred_date": {
-        "type": "string",
-        "title": "Preferred date",
-        "format": "date"
-      },
-      "first_time": {
-        "type": "boolean",
-        "title": "This is my first conference talk"
-      },
-      "contact": {
-        "type": "object",
-        "title": "Contact address",
-        "required": ["city"],
-        "properties": {
-          "street": {"type": "string", "title": "Street"},
-          "city": {"type": "string", "title": "City", "minLength": 1}
-        }
-      }
-    }
-  }
-  """
-
-  @presentation_json """
-  {
-    "groups": [
-      {
-        "id": "talk",
-        "title": "The talk",
-        "fields": ["title", "track", "level", "duration_minutes", "abstract"]
-      },
-      {
-        "id": "speaker",
-        "title": "Speaker",
-        "fields": ["email", "preferred_date", "first_time"]
-      }
-    ],
-    "order": ["talk", "speaker", "contact"],
-    "fields": {
-      "level": {"widget": "radio"},
-      "abstract": {"widget": "textarea"}
-    }
-  }
-  """
-
-  @data_json """
-  {"track": "Elixir"}
-  """
+  alias FrmnPlay.Playground
 
   @impl true
   def mount(_params, _session, socket) do
+    example = Playground.default_example()
+
     {:ok, form_state, diagnostics} =
-      Formentation.form(Jason.decode!(@declaration_json),
-        adapter: :json_schema,
-        ui: Jason.decode!(@presentation_json),
-        data: Jason.decode!(@data_json),
+      Formentation.form(Jason.decode!(example.declaration_text),
+        adapter: example.source,
+        ui: Jason.decode!(example.presentation_text),
+        data: Jason.decode!(example.data_text),
         defaults: :apply
       )
 
