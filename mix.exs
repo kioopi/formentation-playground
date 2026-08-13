@@ -42,6 +42,8 @@ defmodule FrmnPlay.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:daisy_ui_components, "~> 0.9"},
+      {:tidewave, "~> 0.8", only: [:dev]},
       {:usage_rules, "~> 1.0", only: [:dev]},
       {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false},
       {:reach, "~> 2.0", only: [:dev, :test], runtime: false},
@@ -119,11 +121,13 @@ defmodule FrmnPlay.MixProject do
         location: ".claude/skills",
         build: [
           "ash-framework": [
-            description: "Use this skill working with Ash Framework or any of its extensions. Always consult this when making any domain changes, features or fixes.",
+            description:
+              "Use this skill working with Ash Framework or any of its extensions. Always consult this when making any domain changes, features or fixes.",
             usage_rules: [:ash, ~r/^ash_/]
           ],
           "phoenix-framework": [
-            description: "Use this skill working with Phoenix Framework. Consult this when working with the web layer, controllers, views, liveviews etc.",
+            description:
+              "Use this skill working with Phoenix Framework. Consult this when working with the web layer, controllers, views, liveviews etc.",
             usage_rules: [:phoenix, ~r/^phoenix_/]
           ]
         ]
