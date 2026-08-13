@@ -1,3 +1,9 @@
+
+### Workflows
+
+- Use `mix ci` alias when you are done with all changes and fix any pending issues
+- **Version control is Jujutsu (`jj`)** layered on top of git. The git working copy will frequently be on a detached HEAD — this is normal and expected. Do not "fix" it by creating branches or resetting. Just edit files; new changes are tracked in the current `jj` change automatically. Use `git` only for read-only inspection (`git log`, `git diff`, `git status`) unless explicitly told otherwise. Use your jujutsu skill.
+
 <!-- usage-rules-start -->
 <!-- usage_rules-start -->
 ## usage_rules usage
