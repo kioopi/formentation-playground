@@ -940,15 +940,31 @@ Do not add these in Milestone 1:
 
 ---
 
+# Findings
+
+## Step 1 (example conversion) — done
+
+The `:json_schema` source in v0.2.0 expressed the entire talk-proposal
+example: `title` → label, `description` → help, `enum` → select options,
+`format` (`email`/`date`) → roles, `default`, `minLength`/`maxLength`/
+`minimum`/`maximum`, nested objects, and UI hints for groups, order, and
+widget overrides (`radio`, `textarea`). All LiveView and Playwright tests
+passed unchanged.
+
+**Formentation finding — nested field order.** JSON properties decode to
+unordered maps, and the adapter compiles them in sorted-key order.
+Top-level order is controllable via the `groups`/`order` UI hints, but
+those do not reach *nested* object fields: `contact` now renders
+`city` before `street` (alphabetical), whereas the Map source's ordered
+tuple list rendered `street` first. No test pinned this order, so no
+behavior was weakened — but a UI-hints vocabulary for nested field order
+is a candidate Formentation improvement.
+
+---
+
 # Questions to record during implementation
 
 Do not block implementation on these unless they become concrete problems.
-
-## What exactly can the `:json_schema` adapter express in v0.2.0?
-
-The example conversion in Step 1 answers this empirically. Record every
-gap (widget hints, roles/formats, groups, help text) as a candidate
-Formentation finding.
 
 ## Should apply failures be stored as one structured value or a list?
 

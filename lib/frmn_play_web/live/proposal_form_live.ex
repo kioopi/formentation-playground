@@ -2,8 +2,10 @@ defmodule FrmnPlayWeb.ProposalFormLive do
   @moduledoc """
   A playground page for [Formentation](https://github.com/kioopi/formentation).
 
-  The form is declared once with the `:map` source, compiled on mount, and
-  driven through `Formentation.Form.validate/2` (`phx-change`) and
+  The form is declared as three JSON documents — a JSON Schema declaration,
+  a presentation/UI-hints document, and an initial instance — compiled with
+  the `:json_schema` source on mount, and driven through
+  `Formentation.Form.validate/2` (`phx-change`) and
   `Formentation.Form.submit/2` (`phx-submit`). The decoded JSON instance is
   shown once a submission is accepted.
   """
@@ -11,71 +13,102 @@ defmodule FrmnPlayWeb.ProposalFormLive do
 
   alias Formentation.Form
 
-  @declaration %{
-    kind: :object,
-    title: "Talk proposal",
-    required: ["title", "email", "track"],
-    properties: [
-      {"title",
-       %{
-         kind: :string,
-         title: "Talk title",
-         min_length: 5,
-         max_length: 80,
-         help: "The headline attendees see in the schedule."
-       }},
-      {"track",
-       %{kind: :string, title: "Track", one_of: ["Elixir", "Phoenix", "OTP", "Tooling"]}},
-      {"level",
-       %{
-         kind: :string,
-         title: "Audience level",
-         one_of: ["beginner", "intermediate", "advanced"],
-         widget: :radio
-       }},
-      {"duration_minutes",
-       %{kind: :integer, title: "Duration (minutes)", min: 5, max: 90, default: 30}},
-      {"abstract",
-       %{
-         kind: :string,
-         title: "Abstract",
-         widget: :textarea,
-         help: "A few sentences on what the talk covers."
-       }},
-      {"email", %{kind: :string, title: "Speaker email", role: :email, min_length: 3}},
-      {"preferred_date", %{kind: :string, title: "Preferred date", role: :date}},
-      {"first_time", %{kind: :boolean, title: "This is my first conference talk"}},
-      {"contact",
-       %{
-         kind: :object,
-         title: "Contact address",
-         required: ["city"],
-         properties: [
-           {"street", %{kind: :string, title: "Street"}},
-           {"city", %{kind: :string, title: "City", min_length: 1}}
-         ]
-       }}
-    ],
-    groups: [
-      %{
-        id: "talk",
-        title: "The talk",
-        fields: ["title", "track", "level", "duration_minutes", "abstract"]
+  @declaration_json """
+  {
+    "type": "object",
+    "title": "Talk proposal",
+    "required": ["title", "email", "track"],
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Talk title",
+        "minLength": 5,
+        "maxLength": 80,
+        "description": "The headline attendees see in the schedule."
       },
-      %{
-        id: "speaker",
-        title: "Speaker",
-        fields: ["email", "preferred_date", "first_time"]
+      "track": {
+        "type": "string",
+        "title": "Track",
+        "enum": ["Elixir", "Phoenix", "OTP", "Tooling"]
+      },
+      "level": {
+        "type": "string",
+        "title": "Audience level",
+        "enum": ["beginner", "intermediate", "advanced"]
+      },
+      "duration_minutes": {
+        "type": "integer",
+        "title": "Duration (minutes)",
+        "minimum": 5,
+        "maximum": 90,
+        "default": 30
+      },
+      "abstract": {
+        "type": "string",
+        "title": "Abstract",
+        "description": "A few sentences on what the talk covers."
+      },
+      "email": {
+        "type": "string",
+        "title": "Speaker email",
+        "format": "email",
+        "minLength": 3
+      },
+      "preferred_date": {
+        "type": "string",
+        "title": "Preferred date",
+        "format": "date"
+      },
+      "first_time": {
+        "type": "boolean",
+        "title": "This is my first conference talk"
+      },
+      "contact": {
+        "type": "object",
+        "title": "Contact address",
+        "required": ["city"],
+        "properties": {
+          "street": {"type": "string", "title": "Street"},
+          "city": {"type": "string", "title": "City", "minLength": 1}
+        }
       }
-    ]
+    }
   }
+  """
+
+  @presentation_json """
+  {
+    "groups": [
+      {
+        "id": "talk",
+        "title": "The talk",
+        "fields": ["title", "track", "level", "duration_minutes", "abstract"]
+      },
+      {
+        "id": "speaker",
+        "title": "Speaker",
+        "fields": ["email", "preferred_date", "first_time"]
+      }
+    ],
+    "order": ["talk", "speaker", "contact"],
+    "fields": {
+      "level": {"widget": "radio"},
+      "abstract": {"widget": "textarea"}
+    }
+  }
+  """
+
+  @data_json """
+  {"track": "Elixir"}
+  """
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok, form_state, diagnostics} =
-      Formentation.form(@declaration,
-        adapter: :map,
-        data: %{"track" => "Elixir"},
+      Formentation.form(Jason.decode!(@declaration_json),
+        adapter: :json_schema,
+        ui: Jason.decode!(@presentation_json),
+        data: Jason.decode!(@data_json),
         defaults: :apply
       )
 
@@ -121,7 +154,7 @@ defmodule FrmnPlayWeb.ProposalFormLive do
         <div>
           <h1 class="text-2xl font-bold">Formentation playground</h1>
           <p class="text-base-content/70">
-            Declared with the map source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
+            Declared with the JSON Schema source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
           </p>
         </div>
 
