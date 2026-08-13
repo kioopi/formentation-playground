@@ -2,7 +2,16 @@
 
 ## Status
 
-Planned.
+Complete (2026-08-13).
+
+Implemented module names: `FrmnPlay.Playground` (public API),
+`FrmnPlay.Playground.Session`, `FrmnPlay.Playground.Example`,
+`FrmnPlay.Playground.Examples`, `FrmnPlay.Playground.Parser`,
+`FrmnPlayWeb.PlaygroundLive` (route `/playground`). Function names match
+the illustrative API below (`start_session/0`, `edit_*/2`,
+`apply_sources/1`, `validate_preview/2`, `submit_preview/2`,
+`load_example/2`, `reset_session/1`); the only addition is
+`default_example/0`, kept public for the web layer and tests.
 
 ## Revision note (2026-08-13)
 
@@ -886,34 +895,34 @@ implementation if the Session design changed materially during the work.
 
 Milestone 1 is complete when all of the following are true:
 
-- [ ] The Playground core is plain Elixir (struct + pure functions); no
+- [x] The Playground core is plain Elixir (struct + pure functions); no
       Ash, no database, no persistent store, no process registry.
-- [ ] The built-in `talk-proposal` example is authored as JSON Schema +
+- [x] The built-in `talk-proposal` example is authored as JSON Schema +
       presentation + instance documents and compiled through
       `adapter: :json_schema`.
-- [ ] Any behavior the JSON Schema source could not express is recorded as
+- [x] Any behavior the JSON Schema source could not express is recorded as
       a Formentation finding, not silently dropped.
-- [ ] The proposal is represented as an Example rather than a LiveView
+- [x] The proposal is represented as an Example rather than a LiveView
       module attribute.
-- [ ] A Session can be created from an Example through the Playground API.
-- [ ] The Session explicitly separates current editor text from last
+- [x] A Session can be created from an Example through the Playground API.
+- [x] The Session explicitly separates current editor text from last
       accepted source state (text and parsed value per document).
-- [ ] Editing text does not implicitly parse/compile.
-- [ ] A failed apply (parse or compile) preserves the last valid compiled
+- [x] Editing text does not implicitly parse/compile.
+- [x] A failed apply (parse or compile) preserves the last valid compiled
       preview **and its diagnostics**; failures land in `apply_errors`.
-- [ ] A successful apply atomically replaces accepted source state, the
+- [x] A successful apply atomically replaces accepted source state, the
       current Formentation form, and diagnostics, and clears stale
       apply errors and submission results.
-- [ ] Preview validation delegates to `Formentation.Form.validate/2` and
+- [x] Preview validation delegates to `Formentation.Form.validate/2` and
       clears a stale submitted result.
-- [ ] Preview submission delegates to `Formentation.Form.submit/2`.
-- [ ] The Session does not duplicate internal Formentation form state.
-- [ ] `%Phoenix.HTML.Form{}` remains a web-layer projection and is not
+- [x] Preview submission delegates to `Formentation.Form.submit/2`.
+- [x] The Session does not duplicate internal Formentation form state.
+- [x] `%Phoenix.HTML.Form{}` remains a web-layer projection and is not
       stored in the Session.
-- [ ] Loading/resetting examples has explicit tested semantics.
-- [ ] The LiveView communicates only through Playground functions.
-- [ ] Existing LiveView behavior remains covered.
-- [ ] Existing real-browser tests remain green.
+- [x] Loading/resetting examples has explicit tested semantics.
+- [x] The LiveView communicates only through Playground functions.
+- [x] Existing LiveView behavior remains covered.
+- [x] Existing real-browser tests remain green.
 
 ---
 

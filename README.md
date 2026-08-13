@@ -13,34 +13,28 @@ The application deliberately has **no database**. Interactive playground state l
 
 ## Current state
 
-The repository already contains a working Phoenix application with Formentation installed as a real git dependency.
+Milestone 1 is complete. The repository contains a working Phoenix application with Formentation installed as a real git dependency, and the playground core described below is implemented and tested.
 
-A basic form is compiled and initialized through the public Formentation API, rendered with the Phoenix integration, and exercised through the ordinary LiveView lifecycle:
+The built-in `talk-proposal` example is authored as three JSON documents (JSON Schema declaration, presentation/UI hints, initial instance) in `FrmnPlay.Playground.Examples` and compiled through the public Formentation API with `adapter: :json_schema`.
 
-```elixir
-{:ok, form_state, diagnostics} =
-  Formentation.form(declaration,
-    adapter: :map,
-    data: initial_data,
-    defaults: :apply
-  )
-```
+`FrmnPlay.Playground` is the only module the web layer calls:
 
 ```elixir
-form_state = Formentation.Form.validate(form_state, params)
+session = Playground.start_session()
+
+session = Playground.edit_declaration(session, text)
+session = Playground.apply_sources(session)
+
+session = Playground.validate_preview(session, params)
+session = Playground.submit_preview(session, params)
+
+session = Playground.load_example(session, "talk-proposal")
+session = Playground.reset_session(session)
 ```
 
-```elixir
-case Formentation.Form.submit(form_state, params) do
-  {:ok, instance, submitted_form} ->
-    # accepted submission
+Every function returns an updated `%Session{}`; user-caused failures (unparsable text, compile errors) are recorded in `session.apply_errors` rather than returned as error tuples. `FrmnPlayWeb.PlaygroundLive` (at `/playground`) mounts a Session and translates events into these actions; the `%Phoenix.HTML.Form{}` projection stays in the web layer.
 
-  {:error, submitted_form} ->
-    # redisplay with errors/raw input
-end
-```
-
-The repository also has LiveView tests and real-browser Playwright coverage.
+The repository has direct domain tests for every Session action, LiveView tests, and real-browser Playwright coverage.
 
 ## Planned playground model
 
