@@ -103,3 +103,86 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+/* Formentation ships no CSS — only class hooks. Map them onto daisyUI. */
+.ftn-form {
+  @apply flex flex-col gap-4;
+}
+
+.ftn-group {
+  @apply fieldset bg-base-200 border-base-300 rounded-box border p-4;
+}
+
+.ftn-group > legend {
+  @apply fieldset-legend;
+}
+
+.ftn-group-help {
+  @apply text-base-content/70 text-sm;
+}
+
+.ftn-field {
+  @apply flex flex-col gap-1;
+}
+
+.ftn-field > label {
+  @apply label text-base-content;
+}
+
+.ftn-field input[type="text"],
+.ftn-field input[type="email"],
+.ftn-field input[type="url"],
+.ftn-field input[type="date"],
+.ftn-field input[type="number"],
+.ftn-field input[type="tel"] {
+  @apply input w-full;
+}
+
+.ftn-field textarea {
+  @apply textarea w-full;
+}
+
+.ftn-field select {
+  @apply select w-full;
+}
+
+.ftn-field input[type="checkbox"] {
+  @apply checkbox;
+}
+
+/* Checkbox fields render control-then-label; keep them on one line. */
+.ftn-field:has(> input[type="checkbox"]) {
+  @apply flex-row items-center gap-2;
+}
+
+.ftn-radio-group {
+  @apply flex flex-col gap-2;
+}
+
+.ftn-radio {
+  @apply flex items-center gap-2;
+}
+
+.ftn-radio input[type="radio"] {
+  @apply radio;
+}
+
+.ftn-help {
+  @apply text-base-content/70 text-sm;
+}
+
+.ftn-errors {
+  @apply text-error list-none text-sm;
+}
+
+.ftn-error-summary {
+  @apply alert alert-error alert-vertical items-start;
+}
+
+.ftn-error-summary ul {
+  @apply list-disc pl-5;
+}
+
+.ftn-error-summary a {
+  @apply link;
+}

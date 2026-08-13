@@ -42,6 +42,7 @@ defmodule FrmnPlay.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:formentation, git: "https://github.com/kioopi/formentation.git", tag: "v0.2.0"},
       {:phoenix_test_playwright, "~> 0.15", only: :test, runtime: false},
       {:phoenix_test, "~> 0.12", only: :test, runtime: false},
       {:daisy_ui_components, "~> 0.9"},
