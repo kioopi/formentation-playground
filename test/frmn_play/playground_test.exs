@@ -91,6 +91,108 @@ defmodule FrmnPlay.PlaygroundTest do
     end
   end
 
+  describe "edit actions" do
+    test "editing text does not parse, compile, or touch the preview" do
+      session = Playground.start_session()
+
+      edited = Playground.edit_declaration(session, "{ not even json")
+
+      assert edited.declaration_text == "{ not even json"
+      assert edited.accepted_declaration_text == session.accepted_declaration_text
+      assert edited.accepted_declaration == session.accepted_declaration
+      assert edited.form == session.form
+      assert Session.has_preview?(edited)
+      assert Session.declaration_dirty?(edited)
+      assert Session.dirty?(edited)
+    end
+
+    test "presentation and data edits behave the same way" do
+      session = Playground.start_session()
+
+      edited =
+        session
+        |> Playground.edit_presentation("{ nope")
+        |> Playground.edit_data("{ nope")
+
+      assert Session.presentation_dirty?(edited)
+      assert Session.data_dirty?(edited)
+      assert edited.form == session.form
+    end
+  end
+
+  describe "apply_sources/1" do
+    test "a failed parse preserves the last good preview and its diagnostics" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_declaration("{ not even json")
+        |> Playground.apply_sources()
+
+      assert [%{document: :declaration, message: _message}] = applied.apply_errors
+      assert applied.accepted_declaration_text == session.accepted_declaration_text
+      assert applied.accepted_declaration == session.accepted_declaration
+      assert applied.form == session.form
+      assert applied.diagnostics == session.diagnostics
+      assert Session.declaration_dirty?(applied)
+    end
+
+    test "a failed compile records apply errors, not diagnostics" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_declaration(~s({"type": "string"}))
+        |> Playground.apply_sources()
+
+      assert [%{document: :compile, message: _message} | _rest] = applied.apply_errors
+      assert applied.accepted_declaration == session.accepted_declaration
+      assert applied.form == session.form
+      assert applied.diagnostics == session.diagnostics
+      assert Session.declaration_dirty?(applied)
+    end
+
+    test "a successful apply replaces accepted state and rebuilds the form" do
+      session = Playground.start_session()
+
+      new_declaration =
+        String.replace(session.declaration_text, "Talk title", "Session title")
+
+      applied =
+        session
+        |> Playground.edit_declaration(new_declaration)
+        |> Playground.apply_sources()
+
+      assert applied.accepted_declaration_text == new_declaration
+      assert applied.accepted_declaration["properties"]["title"]["title"] == "Session title"
+      assert applied.form != session.form
+      assert applied.apply_errors == []
+      refute Session.dirty?(applied)
+    end
+
+    test "a successful apply clears a stale submission result" do
+      applied =
+        Playground.start_session()
+        |> Playground.submit_preview(valid_params())
+        |> Playground.apply_sources()
+
+      refute Session.has_submission?(applied)
+    end
+
+    test "parse errors from several documents are all reported" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_declaration("{ nope")
+        |> Playground.edit_data("[ nope")
+        |> Playground.apply_sources()
+
+      assert Enum.map(applied.apply_errors, & &1.document) == [:declaration, :data]
+      assert applied.form == session.form
+    end
+  end
+
   defp valid_params do
     %{
       "title" => "Formentation in anger",
