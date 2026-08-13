@@ -23,6 +23,32 @@ defmodule FrmnPlay.Playground do
     initialize_from_example!(Examples.default())
   end
 
+  @doc """
+  Runs `Formentation.Form.validate/2` on the current preview form.
+
+  Clears a previous submission result: once the user edits the form again,
+  the old submitted instance no longer describes the current preview.
+  """
+  @spec validate_preview(Session.t(), map()) :: Session.t()
+  def validate_preview(%Session{form: %Formentation.Form{}} = session, params) do
+    %{session | form: Formentation.Form.validate(session.form, params), submitted: nil}
+  end
+
+  @doc """
+  Runs `Formentation.Form.submit/2` on the current preview form and stores
+  the decoded instance when the submission is accepted.
+  """
+  @spec submit_preview(Session.t(), map()) :: Session.t()
+  def submit_preview(%Session{form: %Formentation.Form{}} = session, params) do
+    case Formentation.Form.submit(session.form, params) do
+      {:ok, instance, submitted_form} ->
+        %{session | form: submitted_form, submitted: instance}
+
+      {:error, submitted_form} ->
+        %{session | form: submitted_form, submitted: nil}
+    end
+  end
+
   defp initialize_from_example!(%Example{} = example) do
     {:ok, declaration} = Parser.parse_declaration(example.source, example.declaration_text)
     {:ok, presentation} = Parser.parse_presentation(example.source, example.presentation_text)

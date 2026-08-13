@@ -45,4 +45,63 @@ defmodule FrmnPlay.PlaygroundTest do
       refute Session.has_apply_errors?(session)
     end
   end
+
+  describe "validate_preview/2" do
+    test "stores the validated form and preserves raw input" do
+      session = Playground.start_session()
+
+      validated = Playground.validate_preview(session, %{"duration_minutes" => "abc"})
+
+      assert validated.form != session.form
+      assert Formentation.Form.field(validated.form, ["duration_minutes"]).display_value == "abc"
+    end
+
+    test "clears a previous submission result" do
+      submitted_session =
+        Playground.start_session()
+        |> Playground.submit_preview(valid_params())
+
+      assert Session.has_submission?(submitted_session)
+
+      validated = Playground.validate_preview(submitted_session, %{"title" => "Changed"})
+
+      refute Session.has_submission?(validated)
+    end
+  end
+
+  describe "submit_preview/2" do
+    test "an accepted submission stores the submitted form and decoded instance" do
+      session = Playground.start_session()
+
+      submitted = Playground.submit_preview(session, valid_params())
+
+      assert submitted.form != session.form
+      assert %{"duration_minutes" => 45, "first_time" => true} = submitted.submitted
+      assert %{"contact" => %{"city" => "Berlin"}} = submitted.submitted
+    end
+
+    test "a rejected submission stores the submitted form and no instance" do
+      session = Playground.start_session()
+
+      submitted = Playground.submit_preview(session, %{"duration_minutes" => "abc"})
+
+      assert submitted.form != session.form
+      assert submitted.submitted == nil
+      assert Formentation.Form.field(submitted.form, ["duration_minutes"]).display_value == "abc"
+    end
+  end
+
+  defp valid_params do
+    %{
+      "title" => "Formentation in anger",
+      "track" => "Elixir",
+      "level" => "intermediate",
+      "duration_minutes" => "45",
+      "abstract" => "Declaring forms as data.",
+      "email" => "ada@example.com",
+      "preferred_date" => "2026-09-01",
+      "first_time" => "true",
+      "contact" => %{"street" => "Hauptstr. 1", "city" => "Berlin"}
+    }
+  end
 end
