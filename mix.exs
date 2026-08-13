@@ -29,7 +29,7 @@ defmodule FrmnPlay.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test, ci: :test]
+      preferred_envs: [precommit: :test, ci: :test, "test.e2e": :test]
     ]
   end
 
@@ -42,6 +42,8 @@ defmodule FrmnPlay.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix_test_playwright, "~> 0.15", only: :test, runtime: false},
+      {:phoenix_test, "~> 0.12", only: :test, runtime: false},
       {:daisy_ui_components, "~> 0.9"},
       {:tidewave, "~> 0.8", only: [:dev]},
       {:usage_rules, "~> 1.0", only: [:dev]},
@@ -93,6 +95,9 @@ defmodule FrmnPlay.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
+      # Browser tests hit the real endpoint, so app.css/app.js have to exist in
+      # priv/static or the page loads without styles and without LiveView.
+      "test.e2e": ["assets.build", "test --only playwright"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind frmn_play", "esbuild frmn_play"],
       "assets.deploy": [
@@ -104,7 +109,8 @@ defmodule FrmnPlay.MixProject do
       ci: [
         "compile --warnings-as-errors",
         "format --check-formatted",
-        "test",
+        "assets.build",
+        "test --include playwright",
         "credo --strict",
         "dialyzer",
         "ex_dna --max-clones 0",

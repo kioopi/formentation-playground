@@ -20,8 +20,14 @@ if System.get_env("PHX_SERVER") do
   config :frmn_play, FrmnPlayWeb.Endpoint, server: true
 end
 
-config :frmn_play, FrmnPlayWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+# Not in :test — runtime config is applied after config/test.exs and would
+# otherwise pull the test endpoint back onto port 4000, where it collides with
+# a running dev server and where the browser tests would be driven against the
+# wrong app.
+if config_env() != :test do
+  config :frmn_play, FrmnPlayWeb.Endpoint,
+    http: [port: String.to_integer(System.get_env("PORT", "4000"))]
+end
 
 if config_env() == :dev do
   # Reload browser tabs when matching files change.
