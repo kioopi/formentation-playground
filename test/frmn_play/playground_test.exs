@@ -193,6 +193,50 @@ defmodule FrmnPlay.PlaygroundTest do
     end
   end
 
+  describe "load_example/2" do
+    test "replaces editor text, accepted state, and form, discarding dirty edits" do
+      session = Playground.start_session()
+
+      loaded =
+        session
+        |> Playground.edit_declaration("{ dirty edit")
+        |> Playground.submit_preview(valid_params())
+        |> Playground.load_example("talk-proposal")
+
+      assert loaded.example_id == "talk-proposal"
+      assert loaded.declaration_text == session.declaration_text
+      assert loaded.accepted_declaration == session.accepted_declaration
+      assert %Formentation.Form{} = loaded.form
+      assert loaded.apply_errors == []
+      assert loaded.submitted == nil
+      refute Session.dirty?(loaded)
+    end
+
+    test "raises on an unknown example id" do
+      session = Playground.start_session()
+
+      assert_raise KeyError, fn -> Playground.load_example(session, "does-not-exist") end
+    end
+  end
+
+  describe "reset_session/1" do
+    test "discards edits and form interactions, restoring the example baseline" do
+      session = Playground.start_session()
+
+      reset =
+        session
+        |> Playground.edit_data("{ dirty")
+        |> Playground.validate_preview(%{"title" => "typed something"})
+        |> Playground.reset_session()
+
+      assert reset.example_id == session.example_id
+      assert reset.data_text == session.data_text
+      assert Formentation.Form.field(reset.form, ["title"]).display_value in [nil, ""]
+      assert reset.apply_errors == []
+      refute Session.dirty?(reset)
+    end
+  end
+
   defp valid_params do
     %{
       "title" => "Formentation in anger",

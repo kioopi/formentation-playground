@@ -124,6 +124,22 @@ defmodule FrmnPlay.Playground do
     end
   end
 
+  @doc """
+  Replaces the whole Session with a freshly initialized one for the given
+  example. Dirty edits, apply errors, form interactions, and the submitted
+  result are all discarded.
+
+  Raises on an unknown example id — built-in ids are programmer-controlled.
+  """
+  @spec load_example(Session.t(), String.t()) :: Session.t()
+  def load_example(%Session{}, example_id) do
+    initialize_from_example!(Examples.get!(example_id))
+  end
+
+  @doc "Resets the Session to the baseline of its currently loaded example."
+  @spec reset_session(Session.t()) :: Session.t()
+  def reset_session(%Session{} = session), do: load_example(session, session.example_id)
+
   defp initialize_from_example!(%Example{} = example) do
     session =
       apply_sources(%Session{
