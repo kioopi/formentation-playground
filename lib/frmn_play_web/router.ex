@@ -18,7 +18,7 @@ defmodule FrmnPlayWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    live "/proposal", ProposalFormLive
+    live "/playground", PlaygroundLive
   end
 
   # Other scopes may use custom stacks.

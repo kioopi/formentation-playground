@@ -1,4 +1,4 @@
-defmodule FrmnPlay.E2E.ProposalFormTest do
+defmodule FrmnPlay.E2E.PlaygroundTest do
   @moduledoc """
   Browser test for the Formentation playground form.
 
@@ -12,7 +12,7 @@ defmodule FrmnPlay.E2E.ProposalFormTest do
 
   test "filling the form and submitting shows the decoded instance", %{conn: conn} do
     conn
-    |> visit("/proposal")
+    |> visit("/playground")
     |> assert_has("h1", text: "Formentation playground")
     |> fill_in("Talk title", with: "Formentation in anger")
     |> select("Track", option: "Elixir")
@@ -29,7 +29,7 @@ defmodule FrmnPlay.E2E.ProposalFormTest do
     conn: conn
   } do
     conn
-    |> visit("/proposal")
+    |> visit("/playground")
     |> fill_in("Duration (minutes)", with: "45x")
     |> click_button("Submit proposal")
     |> assert_has(".ftn-error-summary")
