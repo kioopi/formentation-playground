@@ -8,7 +8,7 @@
     </div>
     <div class="flex items-end gap-2">
       <form id="example-form" phx-change="select-example">
-        <label for="example-select" class="label">Example</label>
+        <.label for="example-select">Example</.label>
         <.select id="example-select" name="example" size="sm">
           <option
             :for={example <- Playground.examples()}
@@ -41,33 +41,35 @@
           name="declaration"
           label="Schema"
           value={@session.declaration_text}
-          dirty={Session.declaration_dirty?(@session)}
+          dirty={Playground.declaration_dirty?(@session)}
         />
         <.source_editor
           id={"presentation-editor-#{@dom_revision}"}
           name="presentation"
           label="Presentation"
           value={@session.presentation_text}
-          dirty={Session.presentation_dirty?(@session)}
+          dirty={Playground.presentation_dirty?(@session)}
         />
         <.source_editor
           id={"data-editor-#{@dom_revision}"}
           name="data"
           label="Initial instance"
           value={@session.data_text}
-          dirty={Session.data_dirty?(@session)}
+          dirty={Playground.data_dirty?(@session)}
         />
         <div
-          :if={Session.has_apply_errors?(@session) or Session.has_apply_diagnostics?(@session)}
+          :if={
+            Playground.has_apply_errors?(@session) or Playground.has_apply_diagnostics?(@session)
+          }
           class="space-y-2"
         >
           <h3 class="font-semibold text-error">Could not apply sources</h3>
           <.parse_error_list
-            :if={Session.has_apply_errors?(@session)}
+            :if={Playground.has_apply_errors?(@session)}
             errors={@session.apply_errors}
           />
           <.diagnostic_list
-            :if={Session.has_apply_diagnostics?(@session)}
+            :if={Playground.has_apply_diagnostics?(@session)}
             id="apply-diagnostics"
             diagnostics={@session.apply_diagnostics}
           />
@@ -80,14 +82,14 @@
 
     <section class="space-y-4" aria-label="Preview">
       <h2 class="text-lg font-semibold">Preview</h2>
-      <.alert :if={Session.dirty?(@session)} id="stale-banner" color="warning" class="text-sm">
+      <.alert :if={Playground.dirty?(@session)} id="stale-banner" color="warning" class="text-sm">
         <div>
           <p class="font-semibold">Changes not applied</p>
           <p>Preview and decoded result show the last applied revision.</p>
         </div>
       </.alert>
       <.diagnostic_list
-        :if={Session.has_diagnostics?(@session)}
+        :if={Playground.has_diagnostics?(@session)}
         id="accepted-diagnostics"
         diagnostics={@session.diagnostics}
       />

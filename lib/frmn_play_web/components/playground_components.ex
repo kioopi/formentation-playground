@@ -11,7 +11,7 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
   def source_editor(assigns) do
     ~H"""
     <div>
-      <label for={@id} class="label gap-2">
+      <.label for={@id} class="gap-2">
         {@label}
         <span
           :if={@dirty}
@@ -19,7 +19,7 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
           data-dirty="true"
           title="This document has unapplied changes"
         />
-      </label>
+      </.label>
       <.textarea
         id={@id}
         name={@name}

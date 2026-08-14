@@ -11,7 +11,6 @@ defmodule FrmnPlayWeb.PlaygroundLive do
   use FrmnPlayWeb, :live_view
 
   alias FrmnPlay.Playground
-  alias FrmnPlay.Playground.Session
   import FrmnPlayWeb.PlaygroundComponents
 
   @impl true
@@ -84,5 +83,5 @@ defmodule FrmnPlayWeb.PlaygroundLive do
 
   defp bump_dom_revision(socket), do: update(socket, :dom_revision, &(&1 + 1))
 
-  def format_json(instance), do: Jason.encode!(instance, pretty: true)
+  defp format_json(instance), do: Jason.encode!(instance, pretty: true)
 end

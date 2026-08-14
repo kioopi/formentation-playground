@@ -5,6 +5,18 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
   alias FrmnPlay.Playground
 
+  # `mix reach.check --arch` enforces the Playground facade for .ex files,
+  # but reach only ingests .ex sources — calls inside HEEx templates are
+  # invisible to it. This guard covers that blind spot.
+  test "templates reach Playground internals only through the facade" do
+    for template <- Path.wildcard("lib/frmn_play_web/**/*.heex") do
+      source = File.read!(template)
+
+      refute source =~ ~r/\b(Session|Parser|Examples)\./,
+             "#{template} must call FrmnPlay.Playground delegates, not its submodules"
+    end
+  end
+
   test "renders the declared widgets", %{conn: conn} do
     {:ok, _live, html} = live(conn, ~p"/playground")
 

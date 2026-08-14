@@ -58,10 +58,7 @@ defmodule FrmnPlay.Playground.Session do
     submitted: nil
   ]
 
-  @type apply_error :: %{
-          document: :declaration | :presentation | :data,
-          message: String.t()
-        }
+  @type apply_error :: FrmnPlay.Playground.Parser.error()
 
   @type t :: %__MODULE__{
           source: :json_schema,

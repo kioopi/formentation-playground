@@ -43,9 +43,17 @@
     ],
     # Convention for future contexts: FrmnPlay.<Context>.Internal.* is
     # reachable only from within the FrmnPlay domain namespace.
-    internal: ["FrmnPlay.*.Internal.*"],
+    #
+    # The Playground submodules are implementation detail behind the
+    # FrmnPlay.Playground facade (its moduledoc pins this): the web layer
+    # must go through the facade's functions/delegates, never name
+    # Session/Parser/Examples directly. Example is the blessed public
+    # value type and stays callable from anywhere.
+    internal: ["FrmnPlay.*.Internal.*", "FrmnPlay.Playground.*"],
     internal_callers: [
-      {"FrmnPlay.*.Internal.*", ["FrmnPlay", "FrmnPlay.*"]}
+      {"FrmnPlay.*.Internal.*", ["FrmnPlay", "FrmnPlay.*"]},
+      {"FrmnPlay.Playground.Example", ["FrmnPlay", "FrmnPlay.*", "FrmnPlayWeb", "FrmnPlayWeb.*"]},
+      {"FrmnPlay.Playground.*", ["FrmnPlay", "FrmnPlay.*"]}
     ]
   ],
   calls: [

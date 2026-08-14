@@ -5,6 +5,9 @@ defmodule FrmnPlay.Playground do
   The web layer calls only this module; `FrmnPlay.Playground.*` submodules
   are implementation detail, except `FrmnPlay.Playground.Example`, the
   public value type returned by `default_example/0` and `examples/0`.
+  `FrmnPlay.Playground.Session` structs are returned as values and their
+  fields may be read directly, but their query functions are reached
+  through the delegates below — templates never name the Session module.
   """
 
   alias FrmnPlay.Playground.{Example, Examples, Parser, Session}
@@ -15,6 +18,34 @@ defmodule FrmnPlay.Playground do
   @doc "All built-in playground examples."
   @spec examples() :: [Example.t()]
   defdelegate examples, to: Examples, as: :all
+
+  @doc "True when the declaration editor text differs from the last accepted one."
+  @spec declaration_dirty?(Session.t()) :: boolean()
+  defdelegate declaration_dirty?(session), to: Session
+
+  @doc "True when the presentation editor text differs from the last accepted one."
+  @spec presentation_dirty?(Session.t()) :: boolean()
+  defdelegate presentation_dirty?(session), to: Session
+
+  @doc "True when the data editor text differs from the last accepted one."
+  @spec data_dirty?(Session.t()) :: boolean()
+  defdelegate data_dirty?(session), to: Session
+
+  @doc "True when any editor text differs from the last accepted revision."
+  @spec dirty?(Session.t()) :: boolean()
+  defdelegate dirty?(session), to: Session
+
+  @doc "True when the most recent apply attempt failed with parse errors."
+  @spec has_apply_errors?(Session.t()) :: boolean()
+  defdelegate has_apply_errors?(session), to: Session
+
+  @doc "True when the most recent apply attempt failed with compile diagnostics."
+  @spec has_apply_diagnostics?(Session.t()) :: boolean()
+  defdelegate has_apply_diagnostics?(session), to: Session
+
+  @doc "True when the accepted form compiled with warnings."
+  @spec has_diagnostics?(Session.t()) :: boolean()
+  defdelegate has_diagnostics?(session), to: Session
 
   @doc """
   Creates a Session from the default example, parsed and compiled so the
