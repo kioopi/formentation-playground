@@ -10,7 +10,7 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
     assert html =~ "Formentation playground"
     # the declaration compiles without diagnostics, so no warning banner
-    refute html =~ "compile diagnostic"
+    refute html =~ "accepted-diagnostics"
     # string field, select from enum, radio widget, nested object
     assert html =~ ~s(name="preview[title]")
     assert html =~ ~s(<option value="Tooling">)
@@ -85,24 +85,6 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     assert html =~ "&quot;city&quot;: &quot;Berlin&quot;"
   end
 
-  test "renders a warning banner when the session has compile diagnostics" do
-    session = %{Playground.start_session() | diagnostics: [%{code: :test, message: "boom"}]}
-
-    assigns = %{
-      flash: %{},
-      session: session,
-      dom_revision: 1,
-      preview_form: Phoenix.Component.to_form(session.form, as: "preview", id: "preview-1")
-    }
-
-    html =
-      assigns
-      |> FrmnPlayWeb.PlaygroundLive.render()
-      |> rendered_to_string()
-
-    assert html =~ "1 compile diagnostic(s)"
-  end
-
   test "the preview form id carries the dom revision", %{conn: conn} do
     {:ok, _live, html} = live(conn, ~p"/playground")
 
@@ -166,6 +148,47 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       assert html =~ "Renamed title"
       assert html =~ ~s(id="preview-2")
       refute html =~ ~s(id="preview-1")
+    end
+  end
+
+  describe "diagnostics placement" do
+    test "a parse failure renders on the sources side and keeps the preview", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html = live |> form("#sources-form", %{"declaration" => "{ not json"}) |> render_submit()
+
+      assert html =~ "Could not apply sources"
+      assert html =~ ~s(id="apply-errors")
+      assert html =~ "Schema"
+      assert html =~ "line 1"
+      assert html =~ ~s(name="preview[title]")
+      refute html =~ ~s(id="accepted-diagnostics")
+    end
+
+    test "a fatal compile failure renders apply diagnostics on the sources side", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html = live |> form("#sources-form", %{"declaration" => ~s({"type": "string"})}) |> render_submit()
+
+      assert html =~ "Could not apply sources"
+      assert html =~ ~s(id="apply-diagnostics")
+      assert html =~ "unsupported_type"
+      assert html =~ ~s(name="preview[title]")
+    end
+
+    test "accepted warnings render on the preview side", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      unsupported = FrmnPlay.Playground.Examples.get!("unsupported-array")
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => unsupported.declaration_text, "presentation" => unsupported.presentation_text, "data" => unsupported.data_text})
+        |> render_submit()
+
+      refute html =~ "Could not apply sources"
+      assert html =~ ~s(id="accepted-diagnostics")
+      assert html =~ "unsupported_type"
+      assert html =~ "Schema: /properties/tags/type"
     end
   end
 end
