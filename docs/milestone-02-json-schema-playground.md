@@ -18,6 +18,29 @@ Implemented (see `docs/superpowers/plans/2026-08-14-milestone-02-json-schema-pla
   the destructive-switching policy. All load-bearing assumptions were
   verified against the M1 code and the Formentation v0.2.0 dependency
   (noted inline below).
+- **2026-08-14 (post-implementation)** — Three refinements from review
+  and a field bug, now part of the contract:
+  - **Facade enforcement.** Where this document shows templates calling
+    `Session.dirty?/1` and friends, the implementation routes those
+    query predicates through `defdelegate`s on `FrmnPlay.Playground` —
+    the web layer never names the Session module (`Session` structs are
+    still read as plain values). Enforced by the `FrmnPlay.Playground.*`
+    internal boundary in `.reach.exs` for `.ex` sources, plus a guard
+    test in `playground_live_test.exs` for HEEx templates, which reach
+    cannot see (it only ingests `.ex` files).
+  - **Textarea whitespace contract.** Source-editor values must render
+    with no surrounding template whitespace: the browser keeps injected
+    indentation as part of the textarea value, and every `phx-change`
+    echoes all three values back, compounding one layer per edit. The
+    `source_editor` component therefore renders its slot inline with
+    `phx-no-format` and `Phoenix.HTML.Form.normalize_value/2`; a
+    round-trip regression test simulates the browser echo. Milestone 7
+    must preserve this property when replacing the textareas with code
+    editors.
+  - **Plan deviation.** The first Playwright DOM-reset regression
+    landed with the Apply loop (implementation-order step 4) rather
+    than step 3 — before Apply exists there is no revision-bumping
+    trigger to test against.
 
 ## Goal
 
