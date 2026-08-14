@@ -26,8 +26,11 @@ defmodule FrmnPlay.Application do
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.
   @impl true
+  # six:ignore:start
   def config_change(changed, _new, removed) do
     FrmnPlayWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  # six:ignore:stop
 end

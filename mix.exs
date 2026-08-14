@@ -93,7 +93,7 @@ defmodule FrmnPlay.MixProject do
       {:six, "~> 0.4", only: :test},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.5", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -121,7 +121,7 @@ defmodule FrmnPlay.MixProject do
         "compile --warnings-as-errors",
         "format --check-formatted",
         "assets.build",
-        "test --include playwright",
+        "test --include playwright --cover",
         "credo --strict",
         "dialyzer",
         "ex_dna --max-clones 0",

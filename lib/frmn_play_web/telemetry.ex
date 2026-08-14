@@ -19,6 +19,7 @@ defmodule FrmnPlayWeb.Telemetry do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
+  # six:ignore:next
   def metrics do
     [
       # Phoenix Metrics

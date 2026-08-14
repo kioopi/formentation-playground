@@ -32,3 +32,16 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Coverage. `lib/frmn_play_web.ex` is skipped because every "uncovered" line in
+# it is a `quote do` inside a `__using__` macro — :cover can't see through macro
+# expansion, so those lines can never be marked covered no matter what we test.
+#
+# `core_components.ex` is deliberately NOT skipped: most of it is generated
+# components we don't use yet, and leaving it counted keeps that visible as debt
+# rather than hiding UI logic once we start adopting it.
+config :six,
+  skip_files: [~r/lib\/frmn_play_web\.ex$/],
+  # Ratchet: sits just under current coverage so it can only be raised, never
+  # silently drifted down. Bump it when coverage climbs.
+  minimum_coverage: 53.0
