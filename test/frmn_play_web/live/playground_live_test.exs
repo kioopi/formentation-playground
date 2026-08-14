@@ -91,7 +91,8 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     assigns = %{
       flash: %{},
       session: session,
-      preview_form: Phoenix.Component.to_form(session.form, as: "preview")
+      dom_revision: 1,
+      preview_form: Phoenix.Component.to_form(session.form, as: "preview", id: "preview-1")
     }
 
     html =
@@ -106,5 +107,65 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     {:ok, _live, html} = live(conn, ~p"/playground")
 
     assert html =~ ~s(id="preview-1")
+  end
+
+  describe "sources panel" do
+    test "renders the three editors with the example's source texts", %{conn: conn} do
+      {:ok, _live, html} = live(conn, ~p"/playground")
+      example = Playground.default_example()
+
+      assert html =~ ~s(id="declaration-editor-1")
+      assert html =~ ~s(id="presentation-editor-1")
+      assert html =~ ~s(id="data-editor-1")
+      assert html =~ "Talk proposal"
+
+      assert html =~
+               String.trim(Phoenix.HTML.html_escape(example.data_text) |> Phoenix.HTML.safe_to_string())
+    end
+
+    test "editing a source marks it dirty without touching the preview", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => "{ not json"})
+        |> render_change()
+
+      assert html =~ ~s(data-dirty="true")
+      assert html =~ ~s(id="preview-1")
+      assert html =~ ~s(name="preview[title]")
+    end
+
+    test "a failed apply keeps the preview and the revision", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => "{ not json"})
+        |> render_submit()
+
+      assert html =~ ~s(id="preview-1")
+      assert html =~ ~s(name="preview[title]")
+    end
+
+    test "a successful apply bumps the revision and rebuilds the preview", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      example = Playground.default_example()
+
+      new_declaration =
+        example.declaration_text
+        |> Jason.decode!()
+        |> put_in(["properties", "title", "title"], "Renamed title")
+        |> Jason.encode!()
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => new_declaration})
+        |> render_submit()
+
+      assert html =~ "Renamed title"
+      assert html =~ ~s(id="preview-2")
+      refute html =~ ~s(id="preview-1")
+    end
   end
 end

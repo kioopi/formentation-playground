@@ -11,6 +11,9 @@ defmodule FrmnPlayWeb.PlaygroundLive do
   use FrmnPlayWeb, :live_view
 
   alias FrmnPlay.Playground
+  alias FrmnPlay.Playground.Session
+
+  import FrmnPlayWeb.PlaygroundComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -30,6 +33,26 @@ defmodule FrmnPlayWeb.PlaygroundLive do
     {:noreply, assign_session(socket, Playground.submit_preview(socket.assigns.session, params))}
   end
 
+  def handle_event("edit-sources", params, socket) do
+    {:noreply, assign_session(socket, edit_sources(socket.assigns.session, params))}
+  end
+
+  def handle_event("apply-sources", params, socket) do
+    session =
+      socket.assigns.session
+      |> edit_sources(params)
+      |> Playground.apply_sources()
+
+    socket =
+      if Session.has_apply_errors?(session) or Session.has_apply_diagnostics?(session) do
+        socket
+      else
+        bump_dom_revision(socket)
+      end
+
+    {:noreply, assign_session(socket, session)}
+  end
+
   defp assign_session(socket, session) do
     socket
     |> assign(:session, session)
@@ -39,50 +62,14 @@ defmodule FrmnPlayWeb.PlaygroundLive do
     )
   end
 
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <Layouts.app flash={@flash}>
-      <div class="mx-auto max-w-2xl space-y-6">
-        <div>
-          <h1 class="text-2xl font-bold">Formentation playground</h1>
-          <p class="text-base-content/70">
-            Declared with the JSON Schema source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
-          </p>
-        </div>
-
-        <div :if={@session.diagnostics != []} role="alert" class="alert alert-warning">
-          <span>
-            {length(@session.diagnostics)} compile diagnostic(s): {inspect(@session.diagnostics)}
-          </span>
-        </div>
-
-        <.form
-          for={@preview_form}
-          id={@preview_form.id}
-          phx-change="validate-preview"
-          phx-submit="submit-preview"
-          novalidate
-          class="card bg-base-100 shadow"
-        >
-          <div class="card-body gap-4">
-            <Formentation.Phoenix.fields form={@preview_form} />
-            <div class="card-actions justify-end">
-              <.button type="submit" color="primary">Submit</.button>
-            </div>
-          </div>
-        </.form>
-
-        <div :if={@session.submitted} class="card bg-base-200">
-          <div class="card-body">
-            <h2 class="card-title">Decoded instance</h2>
-            <pre class="overflow-x-auto text-sm"><code>{format_json(@session.submitted)}</code></pre>
-          </div>
-        </div>
-      </div>
-    </Layouts.app>
-    """
+  defp edit_sources(session, params) do
+    session
+    |> Playground.edit_declaration(Map.get(params, "declaration", session.declaration_text))
+    |> Playground.edit_presentation(Map.get(params, "presentation", session.presentation_text))
+    |> Playground.edit_data(Map.get(params, "data", session.data_text))
   end
 
-  defp format_json(instance), do: Jason.encode!(instance, pretty: true)
+  defp bump_dom_revision(socket), do: update(socket, :dom_revision, &(&1 + 1))
+
+  def format_json(instance), do: Jason.encode!(instance, pretty: true)
 end

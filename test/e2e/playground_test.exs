@@ -36,4 +36,12 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     |> assert_has("input[name='preview[duration_minutes]'][value='45x']")
     |> refute_has("h2", text: "Decoded instance")
   end
+
+  test "successful Apply authoritatively resets modified preview controls", %{conn: conn} do
+    conn
+    |> visit("/playground")
+    |> fill_in("Duration (minutes)", with: "60")
+    |> click_button("Apply sources")
+    |> assert_has("input[name='preview[duration_minutes]'][value='30']")
+  end
 end
