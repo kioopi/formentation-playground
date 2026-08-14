@@ -27,9 +27,8 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
         spellcheck="false"
         phx-debounce="300"
         class="w-full font-mono text-sm"
-      >
-        {@value}
-      </.textarea>
+        phx-no-format
+      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</.textarea>
     </div>
     """
   end

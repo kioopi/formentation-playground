@@ -17,6 +17,43 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     end
   end
 
+  describe "sources textarea round-trip" do
+    # A browser parses a rendered <textarea> body by dropping the single
+    # leading newline and unescaping HTML entities; phx-change then sends
+    # that parsed value back for all three documents. If the template
+    # injects any other whitespace around the value, every edit cycle
+    # compounds it in every textarea (regression: whitespace accumulation).
+    test "a phx-change echo of the rendered content leaves the session clean", %{conn: conn} do
+      {:ok, live, html} = live(conn, ~p"/playground")
+
+      params =
+        Map.new(["declaration", "presentation", "data"], fn name ->
+          {name, browser_textarea_value(html, name)}
+        end)
+
+      html = live |> form("#sources-form", params) |> render_change()
+
+      refute html =~ ~s(data-dirty="true")
+
+      # fixpoint: the re-rendered textareas parse back to the same values
+      for {name, value} <- params do
+        assert browser_textarea_value(html, name) == value
+      end
+    end
+
+    defp browser_textarea_value(html, name) do
+      [_, body] = Regex.run(~r|<textarea[^>]*name="#{name}"[^>]*>(.*?)</textarea>|s, html)
+
+      body
+      |> String.replace_prefix("\n", "")
+      |> String.replace("&quot;", "\"")
+      |> String.replace("&#39;", "'")
+      |> String.replace("&lt;", "<")
+      |> String.replace("&gt;", ">")
+      |> String.replace("&amp;", "&")
+    end
+  end
+
   test "renders the declared widgets", %{conn: conn} do
     {:ok, _live, html} = live(conn, ~p"/playground")
 
