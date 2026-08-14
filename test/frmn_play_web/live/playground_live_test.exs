@@ -3,6 +3,8 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias FrmnPlay.Playground
+
   test "renders the declared widgets", %{conn: conn} do
     {:ok, _live, html} = live(conn, ~p"/playground")
 
@@ -29,6 +31,18 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     for {name, _schema} <- declaration["properties"] do
       assert html =~ ~s(proposal[#{name}])
     end
+  end
+
+  test "changing the form validates the preview without submitting", %{conn: conn} do
+    {:ok, live, _html} = live(conn, ~p"/playground")
+
+    html =
+      live
+      |> form("#proposal-form", proposal: %{"duration_minutes" => "abc"})
+      |> render_change()
+
+    assert html =~ ~s(value="abc")
+    refute html =~ "Decoded instance"
   end
 
   test "a failed submit shows the error summary and keeps raw input", %{conn: conn} do
@@ -69,5 +83,22 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     assert html =~ "&quot;duration_minutes&quot;: 45"
     assert html =~ "&quot;first_time&quot;: true"
     assert html =~ "&quot;city&quot;: &quot;Berlin&quot;"
+  end
+
+  test "renders a warning banner when the session has compile diagnostics" do
+    session = %{Playground.start_session() | diagnostics: [%{code: :test, message: "boom"}]}
+
+    assigns = %{
+      flash: %{},
+      session: session,
+      preview_form: Phoenix.Component.to_form(session.form, as: "proposal")
+    }
+
+    html =
+      assigns
+      |> FrmnPlayWeb.PlaygroundLive.render()
+      |> rendered_to_string()
+
+    assert html =~ "1 compile diagnostic(s)"
   end
 end
