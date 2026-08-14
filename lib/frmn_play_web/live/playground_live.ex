@@ -12,7 +12,6 @@ defmodule FrmnPlayWeb.PlaygroundLive do
 
   alias FrmnPlay.Playground
   alias FrmnPlay.Playground.Session
-
   import FrmnPlayWeb.PlaygroundComponents
 
   @impl true
@@ -44,7 +43,7 @@ defmodule FrmnPlayWeb.PlaygroundLive do
       |> Playground.apply_sources()
 
     socket =
-      if Session.has_apply_errors?(session) or Session.has_apply_diagnostics?(session) do
+      if session.apply_errors != [] or session.apply_diagnostics != [] do
         socket
       else
         bump_dom_revision(socket)

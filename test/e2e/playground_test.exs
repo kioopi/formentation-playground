@@ -66,4 +66,35 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     |> assert_has("textarea[name='declaration']", text: "Talk proposal")
     |> assert_has("input[name='preview[duration_minutes]'][value='30']")
   end
+
+  test "full authoring workflow: edit sources, apply, fill, submit, decode", %{conn: conn} do
+    new_declaration = ~s"""
+    {
+      "type": "object",
+      "title": "Signup",
+      "required": ["full_name"],
+      "properties": {
+        "full_name": {"type": "string", "title": "Full name", "minLength": 1},
+        "age": {"type": "integer", "title": "Age"}
+      }
+    }
+    """
+
+    conn
+    |> visit("/playground")
+    |> fill_in("Schema", with: new_declaration)
+    |> fill_in("Presentation", with: "{}")
+    |> fill_in("Initial instance", with: "{}")
+    |> click_button("Apply sources")
+    |> assert_has("input[name='preview[full_name]']")
+    |> refute_has("input[name='preview[title]']")
+    |> fill_in("Full name", with: "Ada Lovelace")
+    |> fill_in("Age", with: "36")
+    |> click_button("Submit")
+    |> assert_has("h2", text: "Decoded instance")
+    |> evaluate("document.querySelector('pre').textContent", fn text ->
+      assert text =~ ~s("age": 36)
+    end)
+    |> assert_has("pre", text: "Ada Lovelace")
+  end
 end

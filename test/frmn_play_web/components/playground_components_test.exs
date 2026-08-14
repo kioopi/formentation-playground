@@ -9,7 +9,16 @@ defmodule FrmnPlayWeb.PlaygroundComponentsTest do
     test "renders document label, position, and message" do
       html =
         render_component(&PlaygroundComponents.parse_error_list/1,
-          errors: [%{document: :declaration, code: :invalid_json, message: "unexpected byte at position 9", position: 9, line: 2, column: 8}]
+          errors: [
+            %{
+              document: :declaration,
+              code: :invalid_json,
+              message: "unexpected byte at position 9",
+              position: 9,
+              line: 2,
+              column: 8
+            }
+          ]
         )
 
       assert html =~ "Schema"
@@ -20,7 +29,16 @@ defmodule FrmnPlayWeb.PlaygroundComponentsTest do
     test "renders a shape error without position" do
       html =
         render_component(&PlaygroundComponents.parse_error_list/1,
-          errors: [%{document: :data, code: :expected_object, message: "must be a JSON object, got: []", position: nil, line: nil, column: nil}]
+          errors: [
+            %{
+              document: :data,
+              code: :expected_object,
+              message: "must be a JSON object, got: []",
+              position: nil,
+              line: nil,
+              column: nil
+            }
+          ]
         )
 
       assert html =~ "Initial instance"
@@ -34,7 +52,15 @@ defmodule FrmnPlayWeb.PlaygroundComponentsTest do
       html =
         render_component(&PlaygroundComponents.diagnostic_list/1,
           id: "diagnostics",
-          diagnostics: [%Formentation.Diagnostic{severity: :warning, code: :unsupported_type, message: ~s(unsupported type "array" for property "tags"), origin: {:json_schema, "/properties/tags/type"}, template_path: Formentation.TemplatePath.new!(["tags"])}]
+          diagnostics: [
+            %Formentation.Diagnostic{
+              severity: :warning,
+              code: :unsupported_type,
+              message: ~s(unsupported type "array" for property "tags"),
+              origin: {:json_schema, "/properties/tags/type"},
+              template_path: Formentation.TemplatePath.new!(["tags"])
+            }
+          ]
         )
 
       assert html =~ "warning"
@@ -48,7 +74,13 @@ defmodule FrmnPlayWeb.PlaygroundComponentsTest do
       html =
         render_component(&PlaygroundComponents.diagnostic_list/1,
           id: "diagnostics",
-          diagnostics: [%Formentation.Diagnostic{severity: :error, code: :max_depth_exceeded, message: "too deep"}]
+          diagnostics: [
+            %Formentation.Diagnostic{
+              severity: :error,
+              code: :max_depth_exceeded,
+              message: "too deep"
+            }
+          ]
         )
 
       assert html =~ "error"

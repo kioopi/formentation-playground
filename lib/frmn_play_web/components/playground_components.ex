@@ -27,7 +27,9 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
         spellcheck="false"
         phx-debounce="300"
         class="w-full font-mono text-sm"
-      >{@value}</.textarea>
+      >
+        {@value}
+      </.textarea>
     </div>
     """
   end
@@ -55,12 +57,20 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
   def diagnostic_list(assigns) do
     ~H"""
     <div class="space-y-2" id={@id}>
-      <.alert :for={diagnostic <- @diagnostics} color={severity_color(diagnostic.severity)} class="items-start text-sm">
+      <.alert
+        :for={diagnostic <- @diagnostics}
+        color={severity_color(diagnostic.severity)}
+        class="items-start text-sm"
+      >
         <div>
-          <p class="font-semibold"><span class="uppercase">{diagnostic.severity}</span> <code>{diagnostic.code}</code></p>
+          <p class="font-semibold">
+            <span class="uppercase">{diagnostic.severity}</span> <code>{diagnostic.code}</code>
+          </p>
           <p>{diagnostic.message}</p>
           <p :if={diagnostic.origin} class="font-mono text-xs">{origin_label(diagnostic.origin)}</p>
-          <p :if={diagnostic.template_path} class="font-mono text-xs">Field: {Enum.join(diagnostic.template_path.segments, ".")}</p>
+          <p :if={diagnostic.template_path} class="font-mono text-xs">
+            Field: {Enum.join(diagnostic.template_path.segments, ".")}
+          </p>
         </div>
       </.alert>
     </div>

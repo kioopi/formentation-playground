@@ -102,7 +102,10 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       assert html =~ "Talk proposal"
 
       assert html =~
-               String.trim(Phoenix.HTML.html_escape(example.data_text) |> Phoenix.HTML.safe_to_string())
+               String.trim(
+                 Phoenix.HTML.html_escape(example.data_text)
+                 |> Phoenix.HTML.safe_to_string()
+               )
     end
 
     test "editing a source marks it dirty without touching the preview", %{conn: conn} do
@@ -168,7 +171,10 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     test "a fatal compile failure renders apply diagnostics on the sources side", %{conn: conn} do
       {:ok, live, _html} = live(conn, ~p"/playground")
 
-      html = live |> form("#sources-form", %{"declaration" => ~s({"type": "string"})}) |> render_submit()
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => ~s({"type": "string"})})
+        |> render_submit()
 
       assert html =~ "Could not apply sources"
       assert html =~ ~s(id="apply-diagnostics")
@@ -182,7 +188,11 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
       html =
         live
-        |> form("#sources-form", %{"declaration" => unsupported.declaration_text, "presentation" => unsupported.presentation_text, "data" => unsupported.data_text})
+        |> form("#sources-form", %{
+          "declaration" => unsupported.declaration_text,
+          "presentation" => unsupported.presentation_text,
+          "data" => unsupported.data_text
+        })
         |> render_submit()
 
       refute html =~ "Could not apply sources"

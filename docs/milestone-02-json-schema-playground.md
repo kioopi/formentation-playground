@@ -2,7 +2,7 @@
 
 ## Status
 
-Designed (2026-08-14); ready for implementation planning.
+Implemented (see `docs/superpowers/plans/2026-08-14-milestone-02-json-schema-playground.md`).
 
 ## Revision notes
 

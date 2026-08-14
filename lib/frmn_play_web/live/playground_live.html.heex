@@ -10,9 +10,17 @@
       <form id="example-form" phx-change="select-example">
         <label for="example-select" class="label">Example</label>
         <.select id="example-select" name="example" size="sm">
-          <option :for={example <- Playground.examples()} value={example.id} selected={example.id == @session.example_id}>{example.title}</option>
+          <option
+            :for={example <- Playground.examples()}
+            value={example.id}
+            selected={example.id == @session.example_id}
+          >
+            {example.title}
+          </option>
         </.select>
-        <p class="text-xs text-base-content/60">Selecting an example replaces the current sources.</p>
+        <p class="text-xs text-base-content/60">
+          Selecting an example replaces the current sources.
+        </p>
       </form>
       <.button type="button" phx-click="reset-session" ghost size="sm">Reset example</.button>
     </div>
@@ -22,16 +30,51 @@
     <section class="space-y-4" aria-label="Sources">
       <h2 class="text-lg font-semibold">Sources</h2>
 
-      <form id="sources-form" phx-change="edit-sources" phx-submit="apply-sources" class="space-y-4">
-        <.source_editor id={"declaration-editor-#{@dom_revision}"} name="declaration" label="Schema" value={@session.declaration_text} dirty={Session.declaration_dirty?(@session)} />
-        <.source_editor id={"presentation-editor-#{@dom_revision}"} name="presentation" label="Presentation" value={@session.presentation_text} dirty={Session.presentation_dirty?(@session)} />
-        <.source_editor id={"data-editor-#{@dom_revision}"} name="data" label="Initial instance" value={@session.data_text} dirty={Session.data_dirty?(@session)} />
-        <div :if={Session.has_apply_errors?(@session) or Session.has_apply_diagnostics?(@session)} class="space-y-2">
+      <form
+        id="sources-form"
+        phx-change="edit-sources"
+        phx-submit="apply-sources"
+        class="space-y-4"
+      >
+        <.source_editor
+          id={"declaration-editor-#{@dom_revision}"}
+          name="declaration"
+          label="Schema"
+          value={@session.declaration_text}
+          dirty={Session.declaration_dirty?(@session)}
+        />
+        <.source_editor
+          id={"presentation-editor-#{@dom_revision}"}
+          name="presentation"
+          label="Presentation"
+          value={@session.presentation_text}
+          dirty={Session.presentation_dirty?(@session)}
+        />
+        <.source_editor
+          id={"data-editor-#{@dom_revision}"}
+          name="data"
+          label="Initial instance"
+          value={@session.data_text}
+          dirty={Session.data_dirty?(@session)}
+        />
+        <div
+          :if={Session.has_apply_errors?(@session) or Session.has_apply_diagnostics?(@session)}
+          class="space-y-2"
+        >
           <h3 class="font-semibold text-error">Could not apply sources</h3>
-          <.parse_error_list :if={Session.has_apply_errors?(@session)} errors={@session.apply_errors} />
-          <.diagnostic_list :if={Session.has_apply_diagnostics?(@session)} id="apply-diagnostics" diagnostics={@session.apply_diagnostics} />
+          <.parse_error_list
+            :if={Session.has_apply_errors?(@session)}
+            errors={@session.apply_errors}
+          />
+          <.diagnostic_list
+            :if={Session.has_apply_diagnostics?(@session)}
+            id="apply-diagnostics"
+            diagnostics={@session.apply_diagnostics}
+          />
         </div>
-        <div class="flex justify-end"><.button type="submit" color="primary">Apply sources</.button></div>
+        <div class="flex justify-end">
+          <.button type="submit" color="primary">Apply sources</.button>
+        </div>
       </form>
     </section>
 
@@ -43,15 +86,30 @@
           <p>Preview and decoded result show the last applied revision.</p>
         </div>
       </.alert>
-      <.diagnostic_list :if={Session.has_diagnostics?(@session)} id="accepted-diagnostics" diagnostics={@session.diagnostics} />
-      <.form for={@preview_form} id={@preview_form.id} phx-change="validate-preview" phx-submit="submit-preview" novalidate class="card bg-base-100 shadow">
+      <.diagnostic_list
+        :if={Session.has_diagnostics?(@session)}
+        id="accepted-diagnostics"
+        diagnostics={@session.diagnostics}
+      />
+      <.form
+        for={@preview_form}
+        id={@preview_form.id}
+        phx-change="validate-preview"
+        phx-submit="submit-preview"
+        novalidate
+        class="card bg-base-100 shadow"
+      >
         <div class="card-body gap-4">
           <Formentation.Phoenix.fields form={@preview_form} />
-          <div class="card-actions justify-end"><.button type="submit" color="primary">Submit</.button></div>
+          <div class="card-actions justify-end">
+            <.button type="submit" color="primary">Submit</.button>
+          </div>
         </div>
       </.form>
       <div :if={@session.submitted} class="card bg-base-200">
-        <div class="card-body"><h2 class="card-title">Decoded instance</h2><pre class="overflow-x-auto text-sm"><code>{format_json(@session.submitted)}</code></pre></div>
+        <div class="card-body">
+          <h2 class="card-title">Decoded instance</h2><pre class="overflow-x-auto text-sm"><code>{format_json(@session.submitted)}</code></pre>
+        </div>
       </div>
     </section>
   </div>
