@@ -98,4 +98,37 @@ defmodule FrmnPlay.Playground.ParserTest do
       assert error.message =~ "JSON object"
     end
   end
+
+  describe "source size cap" do
+    test "a declaration over 64 KiB is rejected before parsing" do
+      text = String.duplicate(" ", 65_537)
+
+      assert {:error, error} = Parser.parse_declaration(:json_schema, text)
+
+      assert %{
+               document: :declaration,
+               code: :input_too_large,
+               position: nil,
+               line: nil,
+               column: nil
+             } = error
+
+      assert error.message =~ "65537"
+      assert error.message =~ "64 KiB"
+    end
+
+    test "presentation and data documents are capped too" do
+      text = String.duplicate(" ", 65_537)
+
+      assert {:error, %{document: :presentation, code: :input_too_large}} =
+               Parser.parse_presentation(:json_schema, text)
+
+      assert {:error, %{document: :data, code: :input_too_large}} = Parser.parse_data(text)
+    end
+
+    test "exactly 64 KiB is not size-rejected" do
+      text = String.duplicate(" ", 65_536)
+      assert {:error, %{code: :invalid_json}} = Parser.parse_data(text)
+    end
+  end
 end

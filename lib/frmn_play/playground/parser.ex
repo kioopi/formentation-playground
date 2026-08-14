@@ -2,9 +2,8 @@ defmodule FrmnPlay.Playground.Parser do
   @moduledoc """
   Parses playground source texts into documents.
 
-  Milestone 1 supports the `:json_schema` source (all three documents are
-  JSON). Milestone 3 adds a restricted Elixir literal parser for the
-  `:map` source behind the same boundary.
+  It owns the per-document resource-safety envelope: the 64 KiB byte cap
+  runs before any tokenizer or decoder for every source mode.
 
   Instance data is always JSON, in every source mode, so `parse_data/1`
   takes no source argument.
@@ -18,7 +17,7 @@ defmodule FrmnPlay.Playground.Parser do
   """
   @type error :: %{
           document: :declaration | :presentation | :data,
-          code: :invalid_json | :expected_object,
+          code: :invalid_json | :expected_object | :input_too_large,
           message: String.t(),
           position: non_neg_integer() | nil,
           line: pos_integer() | nil,
@@ -34,34 +33,55 @@ defmodule FrmnPlay.Playground.Parser do
   @spec parse_data(String.t()) :: {:ok, map()} | {:error, error()}
   def parse_data(text), do: decode(:data, text)
 
+  @max_source_bytes 65_536
+
   defp decode(document, text) do
-    case Jason.decode(text) do
-      {:ok, value} when is_map(value) ->
-        {:ok, value}
+    with :ok <- check_size(document, text) do
+      case Jason.decode(text) do
+        {:ok, value} when is_map(value) ->
+          {:ok, value}
 
-      {:ok, value} ->
-        {:error,
-         %{
-           document: document,
-           code: :expected_object,
-           message: "must be a JSON object, got: #{inspect(value)}",
-           position: nil,
-           line: nil,
-           column: nil
-         }}
+        {:ok, value} ->
+          {:error,
+           %{
+             document: document,
+             code: :expected_object,
+             message: "must be a JSON object, got: #{inspect(value)}",
+             position: nil,
+             line: nil,
+             column: nil
+           }}
 
-      {:error, %Jason.DecodeError{position: position} = error} ->
-        {line, column} = line_and_column(text, position)
+        {:error, %Jason.DecodeError{position: position} = error} ->
+          {line, column} = line_and_column(text, position)
 
-        {:error,
-         %{
-           document: document,
-           code: :invalid_json,
-           message: Exception.message(error),
-           position: position,
-           line: line,
-           column: column
-         }}
+          {:error,
+           %{
+             document: document,
+             code: :invalid_json,
+             message: Exception.message(error),
+             position: position,
+             line: line,
+             column: column
+           }}
+      end
+    end
+  end
+
+  defp check_size(document, text) do
+    if byte_size(text) > @max_source_bytes do
+      {:error,
+       %{
+         document: document,
+         code: :input_too_large,
+         message:
+           "source is #{byte_size(text)} bytes; the maximum is #{@max_source_bytes} bytes (64 KiB)",
+         position: nil,
+         line: nil,
+         column: nil
+       }}
+    else
+      :ok
     end
   end
 
