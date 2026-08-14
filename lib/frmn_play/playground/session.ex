@@ -6,13 +6,23 @@ defmodule FrmnPlay.Playground.Session do
   The struct separates two layers:
 
   * **current editor state** — the source texts as the user typed them,
-    plus the errors of the most recent apply attempt;
+    plus the outcome of the most recent apply attempt;
   * **last accepted state** — the texts and parsed documents of the last
     successful apply, the `%Formentation.Form{}` compiled from them, and
     that compile's diagnostics.
 
-  `diagnostics` always describes the accepted form; failed applies record
-  their errors in `apply_errors` and never touch `diagnostics`.
+  `diagnostics` always describes the accepted form; failed applies never
+  touch it. A failed apply records its problem in exactly one of two
+  places, depending on where it failed:
+
+  * a parse failure (invalid JSON, wrong shape) sets `apply_errors` to the
+    offending documents' messages;
+  * a compile failure sets `apply_diagnostics` to the full
+    `Formentation.Diagnostic.t()` list the compiler produced, unflattened,
+    so the playground can inspect diagnostic code, severity, and origin
+    rather than just a rendered message.
+
+  The other field is always `[]` in each case.
   """
 
   @enforce_keys [:source, :example_id]
@@ -38,15 +48,18 @@ defmodule FrmnPlay.Playground.Session do
     :form,
     diagnostics: [],
 
-    # Result of the most recent apply attempt on current editor contents
+    # Result of the most recent apply attempt on current editor contents:
+    # a parse failure populates apply_errors, a compile failure populates
+    # apply_diagnostics, a success clears both.
     apply_errors: [],
+    apply_diagnostics: [],
 
     # Last accepted submission result
     submitted: nil
   ]
 
   @type apply_error :: %{
-          document: :declaration | :presentation | :data | :compile,
+          document: :declaration | :presentation | :data,
           message: String.t()
         }
 
@@ -65,6 +78,7 @@ defmodule FrmnPlay.Playground.Session do
           form: Formentation.Form.t() | nil,
           diagnostics: [Formentation.Diagnostic.t()],
           apply_errors: [apply_error()],
+          apply_diagnostics: [Formentation.Diagnostic.t()],
           submitted: map() | nil
         }
 
@@ -87,6 +101,9 @@ defmodule FrmnPlay.Playground.Session do
 
   @spec has_apply_errors?(t()) :: boolean()
   def has_apply_errors?(%__MODULE__{} = s), do: s.apply_errors != []
+
+  @spec has_apply_diagnostics?(t()) :: boolean()
+  def has_apply_diagnostics?(%__MODULE__{} = s), do: s.apply_diagnostics != []
 
   @spec has_diagnostics?(t()) :: boolean()
   def has_diagnostics?(%__MODULE__{} = s), do: s.diagnostics != []

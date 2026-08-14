@@ -2,7 +2,16 @@ defmodule FrmnPlay.PlaygroundTest do
   use ExUnit.Case, async: true
 
   alias FrmnPlay.Playground
-  alias FrmnPlay.Playground.Session
+  alias FrmnPlay.Playground.{Example, Session}
+
+  describe "examples/0" do
+    test "lists the built-in examples as public Example values" do
+      examples = Playground.examples()
+
+      assert Enum.any?(examples, &(&1.id == "talk-proposal"))
+      assert Enum.all?(examples, &match?(%Example{}, &1))
+    end
+  end
 
   describe "start_session/0" do
     test "loads the default example" do
@@ -40,9 +49,11 @@ defmodule FrmnPlay.PlaygroundTest do
       session = Playground.start_session()
 
       assert session.apply_errors == []
+      assert session.apply_diagnostics == []
       assert session.submitted == nil
       refute Session.has_submission?(session)
       refute Session.has_apply_errors?(session)
+      refute Session.has_apply_diagnostics?(session)
     end
   end
 
@@ -137,7 +148,7 @@ defmodule FrmnPlay.PlaygroundTest do
       assert Session.declaration_dirty?(applied)
     end
 
-    test "a failed compile records apply errors, not diagnostics" do
+    test "a failed compile records apply diagnostics, not apply errors" do
       session = Playground.start_session()
 
       applied =
@@ -145,7 +156,10 @@ defmodule FrmnPlay.PlaygroundTest do
         |> Playground.edit_declaration(~s({"type": "string"}))
         |> Playground.apply_sources()
 
-      assert [%{document: :compile, message: _message} | _rest] = applied.apply_errors
+      assert [%Formentation.Diagnostic{} | _rest] = applied.apply_diagnostics
+      assert applied.apply_errors == []
+      assert Session.has_apply_diagnostics?(applied)
+      refute Session.has_apply_errors?(applied)
       assert applied.accepted_declaration == session.accepted_declaration
       assert applied.form == session.form
       assert applied.diagnostics == session.diagnostics
@@ -167,6 +181,7 @@ defmodule FrmnPlay.PlaygroundTest do
       assert applied.accepted_declaration["properties"]["title"]["title"] == "Session title"
       assert applied.form != session.form
       assert applied.apply_errors == []
+      assert applied.apply_diagnostics == []
       refute Session.dirty?(applied)
     end
 

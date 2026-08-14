@@ -3,13 +3,18 @@ defmodule FrmnPlay.Playground do
   Public API of the playground core.
 
   The web layer calls only this module; `FrmnPlay.Playground.*` submodules
-  are implementation detail.
+  are implementation detail, except `FrmnPlay.Playground.Example`, the
+  public value type returned by `default_example/0` and `examples/0`.
   """
 
   alias FrmnPlay.Playground.{Example, Examples, Parser, Session}
 
   @spec default_example() :: Example.t()
   defdelegate default_example, to: Examples, as: :default
+
+  @doc "All built-in playground examples."
+  @spec examples() :: [Example.t()]
+  defdelegate examples, to: Examples, as: :all
 
   @doc """
   Creates a Session from the default example, parsed and compiled so the
@@ -65,30 +70,54 @@ defmodule FrmnPlay.Playground do
   Parses and compiles the current editor texts.
 
   On success the accepted state, form, and diagnostics are replaced and any
-  stale apply errors and submission result are cleared. On failure (parse
-  or compile) the errors are recorded in `apply_errors` and the accepted
-  state, form, and diagnostics stay untouched — the preview keeps showing
-  the last successfully applied revision.
+  stale apply errors, apply diagnostics, and submission result are cleared.
+
+  On failure the accepted state, form, and diagnostics stay untouched — the
+  preview keeps showing the last successfully applied revision — and the
+  problem is recorded in exactly one of two fields:
+
+  * a parse failure sets `apply_errors`;
+  * a compile failure sets `apply_diagnostics` to the compiler's own
+    `Formentation.Diagnostic.t()` list, unflattened, since the playground's
+    purpose includes inspecting Formentation's diagnostics, not just
+    displaying a message.
   """
   @spec apply_sources(Session.t()) :: Session.t()
   def apply_sources(%Session{} = session) do
-    with {:ok, declaration, presentation, data} <- parse_documents(session),
-         {:ok, form, diagnostics} <- compile_form(session.source, declaration, presentation, data) do
-      %{
-        session
-        | accepted_declaration_text: session.declaration_text,
-          accepted_presentation_text: session.presentation_text,
-          accepted_data_text: session.data_text,
-          accepted_declaration: declaration,
-          accepted_presentation: presentation,
-          accepted_data: data,
-          form: form,
-          diagnostics: diagnostics,
-          apply_errors: [],
-          submitted: nil
-      }
-    else
-      {:error, errors} -> %{session | apply_errors: errors}
+    case parse_documents(session) do
+      {:error, errors} ->
+        %{session | apply_errors: errors, apply_diagnostics: []}
+
+      {:ok, declaration, presentation, data} ->
+        apply_compiled(session, declaration, presentation, data)
+    end
+  end
+
+  defp apply_compiled(session, declaration, presentation, data) do
+    case Formentation.form(declaration,
+           adapter: session.source,
+           ui: presentation,
+           data: data,
+           defaults: :apply
+         ) do
+      {:ok, form, diagnostics} ->
+        %{
+          session
+          | accepted_declaration_text: session.declaration_text,
+            accepted_presentation_text: session.presentation_text,
+            accepted_data_text: session.data_text,
+            accepted_declaration: declaration,
+            accepted_presentation: presentation,
+            accepted_data: data,
+            form: form,
+            diagnostics: diagnostics,
+            apply_errors: [],
+            apply_diagnostics: [],
+            submitted: nil
+        }
+
+      {:error, diagnostics} ->
+        %{session | apply_errors: [], apply_diagnostics: diagnostics}
     end
   end
 
@@ -106,21 +135,6 @@ defmodule FrmnPlay.Playground do
 
       errors ->
         {:error, errors}
-    end
-  end
-
-  defp compile_form(source, declaration, presentation, data) do
-    case Formentation.form(declaration,
-           adapter: source,
-           ui: presentation,
-           data: data,
-           defaults: :apply
-         ) do
-      {:ok, form, diagnostics} ->
-        {:ok, form, diagnostics}
-
-      {:error, diagnostics} ->
-        {:error, Enum.map(diagnostics, &%{document: :compile, message: &1.message})}
     end
   end
 
@@ -150,8 +164,9 @@ defmodule FrmnPlay.Playground do
         data_text: example.data_text
       })
 
-    if session.apply_errors != [] do
-      raise "built-in example #{example.id} failed to apply: #{inspect(session.apply_errors)}"
+    if session.apply_errors != [] or session.apply_diagnostics != [] do
+      raise "built-in example #{example.id} failed to apply: " <>
+              inspect(session.apply_errors ++ session.apply_diagnostics)
     end
 
     session
