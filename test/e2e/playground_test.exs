@@ -20,7 +20,7 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     |> fill_in("Duration (minutes)", with: "45")
     |> fill_in("Speaker email", with: "ada@example.com")
     |> fill_in("City", with: "Berlin")
-    |> click_button("Submit proposal")
+    |> click_button("Submit")
     |> assert_has("h2", text: "Decoded instance")
     |> assert_has("pre", text: "duration_minutes")
   end
@@ -31,9 +31,9 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     conn
     |> visit("/playground")
     |> fill_in("Duration (minutes)", with: "45x")
-    |> click_button("Submit proposal")
+    |> click_button("Submit")
     |> assert_has(".ftn-error-summary")
-    |> assert_has("input[name='proposal[duration_minutes]'][value='45x']")
+    |> assert_has("input[name='preview[duration_minutes]'][value='45x']")
     |> refute_has("h2", text: "Decoded instance")
   end
 end

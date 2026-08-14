@@ -14,23 +14,29 @@ defmodule FrmnPlayWeb.PlaygroundLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign_session(socket, Playground.start_session())}
+    {:ok,
+     socket
+     |> assign(:dom_revision, 1)
+     |> assign_session(Playground.start_session())}
   end
 
   @impl true
-  def handle_event("validate-preview", %{"proposal" => params}, socket) do
+  def handle_event("validate-preview", %{"preview" => params}, socket) do
     {:noreply,
      assign_session(socket, Playground.validate_preview(socket.assigns.session, params))}
   end
 
-  def handle_event("submit-preview", %{"proposal" => params}, socket) do
+  def handle_event("submit-preview", %{"preview" => params}, socket) do
     {:noreply, assign_session(socket, Playground.submit_preview(socket.assigns.session, params))}
   end
 
   defp assign_session(socket, session) do
     socket
     |> assign(:session, session)
-    |> assign(:preview_form, to_form(session.form, as: "proposal"))
+    |> assign(
+      :preview_form,
+      to_form(session.form, as: "preview", id: "preview-#{socket.assigns.dom_revision}")
+    )
   end
 
   @impl true
@@ -53,7 +59,7 @@ defmodule FrmnPlayWeb.PlaygroundLive do
 
         <.form
           for={@preview_form}
-          id="proposal-form"
+          id={@preview_form.id}
           phx-change="validate-preview"
           phx-submit="submit-preview"
           novalidate
@@ -62,7 +68,7 @@ defmodule FrmnPlayWeb.PlaygroundLive do
           <div class="card-body gap-4">
             <Formentation.Phoenix.fields form={@preview_form} />
             <div class="card-actions justify-end">
-              <.button type="submit" color="primary">Submit proposal</.button>
+              <.button type="submit" color="primary">Submit</.button>
             </div>
           </div>
         </.form>

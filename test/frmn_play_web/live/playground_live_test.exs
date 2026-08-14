@@ -12,12 +12,12 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     # the declaration compiles without diagnostics, so no warning banner
     refute html =~ "compile diagnostic"
     # string field, select from enum, radio widget, nested object
-    assert html =~ ~s(name="proposal[title]")
+    assert html =~ ~s(name="preview[title]")
     assert html =~ ~s(<option value="Tooling">)
-    assert html =~ ~s(name="proposal[level]" value="advanced")
-    assert html =~ ~s(name="proposal[contact][city]")
+    assert html =~ ~s(name="preview[level]" value="advanced")
+    assert html =~ ~s(name="preview[contact][city]")
     # default applied at initialization
-    assert html =~ ~s(name="proposal[duration_minutes]" value="30")
+    assert html =~ ~s(name="preview[duration_minutes]" value="30")
   end
 
   test "the initial state comes from the Playground domain", %{conn: conn} do
@@ -29,7 +29,7 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     declaration = Jason.decode!(example.declaration_text)
 
     for {name, _schema} <- declaration["properties"] do
-      assert html =~ ~s(proposal[#{name}])
+      assert html =~ ~s(preview[#{name}])
     end
   end
 
@@ -38,7 +38,7 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
     html =
       live
-      |> form("#proposal-form", proposal: %{"duration_minutes" => "abc"})
+      |> form("#preview-1", preview: %{"duration_minutes" => "abc"})
       |> render_change()
 
     assert html =~ ~s(value="abc")
@@ -50,7 +50,7 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
     html =
       live
-      |> form("#proposal-form", proposal: %{"title" => "Hi", "duration_minutes" => "abc"})
+      |> form("#preview-1", preview: %{"title" => "Hi", "duration_minutes" => "abc"})
       |> render_submit()
 
     assert html =~ "ftn-error-summary"
@@ -63,8 +63,8 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
 
     html =
       live
-      |> form("#proposal-form",
-        proposal: %{
+      |> form("#preview-1",
+        preview: %{
           "title" => "Formentation in anger",
           "track" => "Elixir",
           "level" => "intermediate",
@@ -91,7 +91,7 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
     assigns = %{
       flash: %{},
       session: session,
-      preview_form: Phoenix.Component.to_form(session.form, as: "proposal")
+      preview_form: Phoenix.Component.to_form(session.form, as: "preview")
     }
 
     html =
@@ -100,5 +100,11 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       |> rendered_to_string()
 
     assert html =~ "1 compile diagnostic(s)"
+  end
+
+  test "the preview form id carries the dom revision", %{conn: conn} do
+    {:ok, _live, html} = live(conn, ~p"/playground")
+
+    assert html =~ ~s(id="preview-1")
   end
 end
