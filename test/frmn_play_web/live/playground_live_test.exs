@@ -336,5 +336,20 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       refute has_element?(live, "textarea[name=presentation]")
       assert has_element?(live, "#presentation-inline")
     end
+
+    test "map parse errors render on the Sources side under the editor's label", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => "foo()"})
+        |> render_submit()
+
+      assert html =~ "Could not apply sources"
+      assert html =~ "calls and operators are not allowed"
+      # The error heading names the editor as labeled in this mode.
+      assert has_element?(live, "#apply-errors", "Declaration — line 1, column 1")
+    end
   end
 end

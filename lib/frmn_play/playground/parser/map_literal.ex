@@ -46,8 +46,9 @@ defmodule FrmnPlay.Playground.Parser.MapLiteral do
     end
   end
 
+  # Heredoc charlists carry delimiter "'''", single-line ones "'".
   defp charlist_gate(literal, meta) do
-    if meta[:delimiter] == "'", do: {:error, @charlist_message}, else: {:ok, literal}
+    if meta[:delimiter] in ["'", "'''"], do: {:error, @charlist_message}, else: {:ok, literal}
   end
 
   defp build(_ast, depth, _nodes) when depth > @max_depth,

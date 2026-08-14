@@ -129,6 +129,11 @@ defmodule FrmnPlay.Playground.Parser.MapLiteralTest do
                MapLiteral.decode("'abc'")
 
       assert charlist_message =~ "charlist"
+
+      assert {:error, %{code: :forbidden_syntax, message: heredoc_message}} =
+               MapLiteral.decode("%{title: '''\nabc\n'''}")
+
+      assert heredoc_message =~ "charlist"
       assert {:ok, [97, 98, 99]} = MapLiteral.decode("[97, 98, 99]")
     end
   end
