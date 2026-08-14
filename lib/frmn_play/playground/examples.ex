@@ -150,42 +150,131 @@ defmodule FrmnPlay.Playground.Examples do
   }
   """
 
+  # Map declarations are shown verbatim in the editor, so they are kept in
+  # `Code.format_string!/2` shape at `@map_line_length` columns to stay
+  # readable and editable inside the textarea. `examples_test.exs` enforces it.
+  @map_line_length 80
+
   @talk_proposal_map_declaration """
   %{
-    kind: :object, title: "Talk proposal", required: ["title", "email", "track"],
+    kind: :object,
+    title: "Talk proposal",
+    required: ["title", "email", "track"],
     properties: [
-      {"title", %{kind: :string, title: "Talk title", min_length: 5, max_length: 80, help: "The headline attendees see in the schedule."}},
-      {"track", %{kind: :string, title: "Track", one_of: ["Elixir", "Phoenix", "OTP", "Tooling"]}},
-      {"level", %{kind: :string, title: "Audience level", one_of: ["beginner", "intermediate", "advanced"], widget: :radio}},
-      {"duration_minutes", %{kind: :integer, title: "Duration (minutes)", min: 5, max: 90, default: 30}},
-      {"abstract", %{kind: :string, title: "Abstract", widget: :textarea, help: "A few sentences on what the talk covers."}},
-      {"email", %{kind: :string, title: "Speaker email", role: :email, min_length: 3}},
+      {"title",
+       %{
+         kind: :string,
+         title: "Talk title",
+         min_length: 5,
+         max_length: 80,
+         help: "The headline attendees see in the schedule."
+       }},
+      {"track",
+       %{
+         kind: :string,
+         title: "Track",
+         one_of: ["Elixir", "Phoenix", "OTP", "Tooling"]
+       }},
+      {"level",
+       %{
+         kind: :string,
+         title: "Audience level",
+         one_of: ["beginner", "intermediate", "advanced"],
+         widget: :radio
+       }},
+      {"duration_minutes",
+       %{
+         kind: :integer,
+         title: "Duration (minutes)",
+         min: 5,
+         max: 90,
+         default: 30
+       }},
+      {"abstract",
+       %{
+         kind: :string,
+         title: "Abstract",
+         widget: :textarea,
+         help: "A few sentences on what the talk covers."
+       }},
+      {"email",
+       %{kind: :string, title: "Speaker email", role: :email, min_length: 3}},
       {"preferred_date", %{kind: :string, title: "Preferred date", role: :date}},
-      {"first_time", %{kind: :boolean, title: "This is my first conference talk"}},
-      {"contact", %{kind: :object, title: "Contact address", required: ["city"], properties: [{"street", %{kind: :string, title: "Street"}}, {"city", %{kind: :string, title: "City", min_length: 1}}]}}
+      {"first_time",
+       %{kind: :boolean, title: "This is my first conference talk"}},
+      {"contact",
+       %{
+         kind: :object,
+         title: "Contact address",
+         required: ["city"],
+         properties: [
+           {"street", %{kind: :string, title: "Street"}},
+           {"city", %{kind: :string, title: "City", min_length: 1}}
+         ]
+       }}
     ],
-    groups: [%{id: "talk", title: "The talk", fields: ["title", "track", "level", "duration_minutes", "abstract"]}, %{id: "speaker", title: "Speaker", fields: ["email", "preferred_date", "first_time"]}]
+    groups: [
+      %{
+        id: "talk",
+        title: "The talk",
+        fields: ["title", "track", "level", "duration_minutes", "abstract"]
+      },
+      %{
+        id: "speaker",
+        title: "Speaker",
+        fields: ["email", "preferred_date", "first_time"]
+      }
+    ]
   }
   """
 
   @pump_inspection_declaration """
   %{
-    kind: :object, title: "Pump inspection", required: ["serial_number", "condition", "mounting"],
+    kind: :object,
+    title: "Pump inspection",
+    required: ["serial_number", "condition", "mounting"],
     properties: [
       {"serial_number", %{kind: :string, title: "Serial number", min_length: 4}},
-      {"condition", %{kind: :string, title: "Condition", one_of: ["good", "worn", "defective"]}},
-      {"mounting", %{kind: :string, title: "Mounting", one_of: ["floor", "wall"], widget: :radio}},
+      {"condition",
+       %{kind: :string, title: "Condition", one_of: ["good", "worn", "defective"]}},
+      {"mounting",
+       %{
+         kind: :string,
+         title: "Mounting",
+         one_of: ["floor", "wall"],
+         widget: :radio
+       }},
       {"last_service", %{kind: :string, title: "Last service", role: :date}},
       {"operating_hours", %{kind: :integer, title: "Operating hours", min: 0}},
       {"voltage", %{kind: :number, title: "Voltage (V)"}},
       {"insulation_ok", %{kind: :boolean, title: "Insulation test passed"}},
-      {"notes", %{kind: :string, title: "Notes", widget: :textarea, help: "Visible to all technicians."}}
-    ], groups: [%{id: "electrical", title: "Electrical", fields: ["voltage", "insulation_ok"]}]
+      {"notes",
+       %{
+         kind: :string,
+         title: "Notes",
+         widget: :textarea,
+         help: "Visible to all technicians."
+       }}
+    ],
+    groups: [
+      %{
+        id: "electrical",
+        title: "Electrical",
+        fields: ["voltage", "insulation_ok"]
+      }
+    ]
   }
   """
 
   @unsupported_kind_declaration """
-  %{kind: :object, title: "Unsupported kind", properties: [{"title", %{kind: :string, title: "Title"}}, {"tags", %{kind: :array, title: "Tags"}}]}
+  %{
+    kind: :object,
+    title: "Unsupported kind",
+    properties: [
+      {"title", %{kind: :string, title: "Title"}},
+      {"tags", %{kind: :array, title: "Tags"}}
+    ]
+  }
   """
 
   @examples [
@@ -259,4 +348,8 @@ defmodule FrmnPlay.Playground.Examples do
 
   @spec all() :: [Example.t()]
   def all, do: @examples
+
+  @doc "Column width the Map declarations above are formatted to."
+  @spec map_line_length() :: pos_integer()
+  def map_line_length, do: @map_line_length
 end

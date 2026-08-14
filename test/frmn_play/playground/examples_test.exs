@@ -61,6 +61,19 @@ defmodule FrmnPlay.Playground.ExamplesTest do
       end
     end
 
+    test "declarations are formatted for editing in the textarea" do
+      for example <- Examples.all(), example.source == :map do
+        formatted =
+          example.declaration_text
+          |> Code.format_string!(line_length: Examples.map_line_length())
+          |> IO.iodata_to_binary()
+          |> Kernel.<>("\n")
+
+        assert formatted == example.declaration_text,
+               "#{example.id} declaration is not formatted; expected:\n#{formatted}"
+      end
+    end
+
     test "initialize successfully, including the accepted unsupported-kind warning" do
       alias FrmnPlay.Playground
 
