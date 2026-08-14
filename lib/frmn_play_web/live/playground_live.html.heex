@@ -37,6 +37,12 @@
 
     <section class="space-y-4" aria-label="Preview">
       <h2 class="text-lg font-semibold">Preview</h2>
+      <.alert :if={Session.dirty?(@session)} id="stale-banner" color="warning" class="text-sm">
+        <div>
+          <p class="font-semibold">Changes not applied</p>
+          <p>Preview and decoded result show the last applied revision.</p>
+        </div>
+      </.alert>
       <.diagnostic_list :if={Session.has_diagnostics?(@session)} id="accepted-diagnostics" diagnostics={@session.diagnostics} />
       <.form for={@preview_form} id={@preview_form.id} phx-change="validate-preview" phx-submit="submit-preview" novalidate class="card bg-base-100 shadow">
         <div class="card-body gap-4">

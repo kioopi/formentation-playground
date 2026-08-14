@@ -226,4 +226,35 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       assert html =~ ~s(id="preview-2")
     end
   end
+
+  describe "staleness banner" do
+    test "editing a source shows the banner over the whole right-hand side", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html =
+        live
+        |> form("#sources-form", %{"declaration" => ~s({"type": "object", "properties": {}})})
+        |> render_change()
+
+      assert html =~ ~s(id="stale-banner")
+      assert html =~ "Changes not applied"
+    end
+
+    test "a successful apply clears the banner", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      live
+      |> form("#sources-form", %{"declaration" => ~s({"type": "object", "properties": {}})})
+      |> render_change()
+
+      html = live |> form("#sources-form") |> render_submit()
+
+      refute html =~ ~s(id="stale-banner")
+    end
+
+    test "a pristine session shows no banner", %{conn: conn} do
+      {:ok, _live, html} = live(conn, ~p"/playground")
+      refute html =~ ~s(id="stale-banner")
+    end
+  end
 end
