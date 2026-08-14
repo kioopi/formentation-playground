@@ -9,23 +9,34 @@ defmodule FrmnPlay.Playground.Parser do
   takes no source argument.
   """
 
+  alias FrmnPlay.Playground.Parser.MapLiteral
+
   @typedoc """
   A parse failure. `position` is Jason's byte offset into the source text;
-  `line`/`column` are derived from it by counting newlines. Column is
-  therefore a byte column, not a grapheme column, on lines containing
-  multi-byte characters.
+  it is always nil on the Elixir path, whose `line`/`column` come from
+  native tokenizer or AST metadata and may be nil for literals.
   """
   @type error :: %{
           document: :declaration | :presentation | :data,
-          code: :invalid_json | :expected_object | :input_too_large,
+          code:
+            :invalid_json
+            | :expected_object
+            | :invalid_elixir
+            | :expected_map
+            | :forbidden_syntax
+            | :atom_not_allowed
+            | :input_too_large
+            | :ast_too_deep
+            | :ast_too_large,
           message: String.t(),
           position: non_neg_integer() | nil,
           line: pos_integer() | nil,
           column: pos_integer() | nil
         }
 
-  @spec parse_declaration(:json_schema, String.t()) :: {:ok, map()} | {:error, error()}
+  @spec parse_declaration(:json_schema | :map, String.t()) :: {:ok, map()} | {:error, error()}
   def parse_declaration(:json_schema, text), do: decode(:declaration, text)
+  def parse_declaration(:map, text), do: decode_map(:declaration, text)
 
   @spec parse_presentation(:json_schema, String.t()) :: {:ok, map()} | {:error, error()}
   def parse_presentation(:json_schema, text), do: decode(:presentation, text)
@@ -82,6 +93,32 @@ defmodule FrmnPlay.Playground.Parser do
        }}
     else
       :ok
+    end
+  end
+
+  defp decode_map(document, text) do
+    with :ok <- check_size(document, text),
+         {:ok, term} <- decode_literal(document, text) do
+      if is_map(term) do
+        {:ok, term}
+      else
+        {:error,
+         %{
+           document: document,
+           code: :expected_map,
+           message: "must be a map literal, got: #{inspect(term, limit: 5)}",
+           position: nil,
+           line: nil,
+           column: nil
+         }}
+      end
+    end
+  end
+
+  defp decode_literal(document, text) do
+    case MapLiteral.decode(text) do
+      {:ok, term} -> {:ok, term}
+      {:error, error} -> {:error, Map.merge(error, %{document: document, position: nil})}
     end
   end
 

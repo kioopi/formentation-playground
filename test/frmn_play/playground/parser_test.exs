@@ -131,4 +131,46 @@ defmodule FrmnPlay.Playground.ParserTest do
       assert {:error, %{code: :invalid_json}} = Parser.parse_data(text)
     end
   end
+
+  describe "map declarations" do
+    test "decodes a valid map declaration" do
+      text = ~s(%{kind: :object, title: "T", properties: [{"name", %{kind: :string}}]})
+
+      assert {:ok, %{kind: :object, properties: [{"name", %{kind: :string}}]}} =
+               Parser.parse_declaration(:map, text)
+    end
+
+    test "syntax failures retain native position metadata" do
+      assert {:error, error} = Parser.parse_declaration(:map, "%{")
+      assert %{document: :declaration, code: :invalid_elixir, position: nil, line: 1} = error
+      assert is_integer(error.column)
+    end
+
+    test "grammar, atom, and top-level shape rejections are structured" do
+      assert {:error, %{document: :declaration, code: :forbidden_syntax, position: nil}} =
+               Parser.parse_declaration(:map, "foo()")
+
+      assert {:error, %{document: :declaration, code: :atom_not_allowed}} =
+               Parser.parse_declaration(:map, "%{kind: :erlang}")
+
+      assert {:error, error} = Parser.parse_declaration(:map, "[1, 2]")
+
+      assert %{
+               document: :declaration,
+               code: :expected_map,
+               position: nil,
+               line: nil,
+               column: nil
+             } = error
+
+      assert error.message =~ "map"
+    end
+
+    test "the byte cap applies to map declarations" do
+      text = String.duplicate(" ", 65_537)
+
+      assert {:error, %{document: :declaration, code: :input_too_large}} =
+               Parser.parse_declaration(:map, text)
+    end
+  end
 end
