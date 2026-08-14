@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned; design resolved (2026-08-14). Ready for implementation.
+Implemented (see `docs/superpowers/plans/2026-08-14-milestone-03-elixir-map-mode.md`).
 
 ## Revision note (2026-08-14)
 

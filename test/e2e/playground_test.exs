@@ -97,4 +97,35 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     end)
     |> assert_has("pre", text: "Ada Lovelace")
   end
+
+  @map_e2e_declaration """
+  %{
+    kind: :object,
+    title: "Edited map form",
+    required: ["name"],
+    properties: [
+      {"name", %{kind: :string, title: "Headline"}},
+      {"level", %{kind: :string, title: "Level", one_of: ["low", "high"], widget: :radio}}
+    ]
+  }
+  """
+
+  test "map mode: select, edit, apply, interact, submit, and switch back", %{conn: conn} do
+    conn
+    |> visit("/playground")
+    |> select("Example", option: "Talk proposal (Map)")
+    |> assert_has("#presentation-inline", text: "Defined inline")
+    |> fill_in("Declaration", with: @map_e2e_declaration)
+    |> fill_in("Initial instance", with: "{}")
+    |> click_button("Apply sources")
+    |> assert_has("label", text: "Headline")
+    |> fill_in("Headline", with: "From the map source")
+    |> choose("high")
+    |> click_button("Submit")
+    |> assert_has("h2", text: "Decoded instance")
+    |> assert_has("pre", text: "From the map source")
+    |> select("Example", option: "Talk proposal")
+    |> assert_has("textarea[name=presentation]", text: "groups")
+    |> refute_has("#presentation-inline")
+  end
 end
