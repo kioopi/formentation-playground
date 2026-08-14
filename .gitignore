@@ -53,3 +53,5 @@ mise/*.local.toml
 # Local-only AI process docs (specs, plans, discussion) — not published
 /docs/superpowers/
 /docs/discussion/
+
+reach_report/
