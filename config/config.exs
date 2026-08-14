@@ -65,6 +65,11 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Route the strings baked into DaisyUIComponents (flash titles, form errors)
+# through our Gettext backend instead of rendering them untranslated.
+config :daisy_ui_components,
+  translate_function: &FrmnPlayWeb.CoreComponents.translate_error/1
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

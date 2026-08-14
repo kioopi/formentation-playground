@@ -84,8 +84,10 @@ defmodule FrmnPlayWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      import FrmnPlayWeb.CoreComponents
+      # All UI components, including the replacements for the generated
+      # Phoenix core components (`core_components: true` is the default, but
+      # the library documents spelling it out).
+      use DaisyUIComponents, core_components: true
 
       # Common modules used in templates
       alias FrmnPlayWeb.Layouts

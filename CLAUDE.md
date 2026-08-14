@@ -4,6 +4,24 @@
 - Use `mix ci` alias when you are done with all changes and fix any pending issues
 - **Version control is Jujutsu (`jj`)** layered on top of git. The git working copy will frequently be on a detached HEAD — this is normal and expected. Do not "fix" it by creating branches or resetting. Just edit files; new changes are tracked in the current `jj` change automatically. Use `git` only for read-only inspection (`git log`, `git diff`, `git status`) unless explicitly told otherwise. Use your jujutsu skill.
 
+### UI components
+
+- **Using `daisy_ui_components` is mandatory.** Don't hand-roll markup with
+  daisyUI utility classes when a component from daisy_ui_components is available.
+  (`<button class="btn btn-primary">`); use the component (`<.button color="primary">`).
+  The whole set is imported via `use DaisyUIComponents, core_components: true`
+  in `html_helpers/0` in `lib/frmn_play_web.ex`, so every component is already
+  in scope — no import to add.
+- Form fields come from `Formentation` (`<Formentation.Phoenix.fields />`).
+- `FrmnPlayWeb.CoreComponents` holds no components, only the Gettext bridge
+  (`translate_error/1`, `translate_errors/2`). Don't add components to it.
+  It is deliberately *not* imported into templates; it is reached through the
+  `:daisy_ui_components` `:translate_function` capture in `config/config.exs`,
+  so that library's built-in strings go through our backend. Call it fully
+  qualified if a template ever needs it.
+- Anything rendered from a dependency needs an `@source` entry in
+  `assets/css/app.css` or Tailwind will not emit its classes.
+
 <!-- usage-rules-start -->
 <!-- usage_rules-start -->
 ## usage_rules usage

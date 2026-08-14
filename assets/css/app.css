@@ -6,6 +6,9 @@
 @source "../css";
 @source "../js";
 @source "../../lib/frmn_play_web";
+/* DaisyUIComponents builds its class names in the dep's own source, so Tailwind
+   has to scan it too or those classes never reach the bundle. */
+@source "../../deps/daisy_ui_components/lib";
 /* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
 @source "../../_build/dev/phoenix-colocated/frmn_play/*/";
 

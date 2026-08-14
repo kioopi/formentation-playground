@@ -44,4 +44,4 @@ config :six,
   skip_files: [~r/lib\/frmn_play_web\.ex$/],
   # Ratchet: sits just under current coverage so it can only be raised, never
   # silently drifted down. Bump it when coverage climbs.
-  minimum_coverage: 53.0
+  minimum_coverage: 90.0

@@ -62,7 +62,7 @@ defmodule FrmnPlayWeb.PlaygroundLive do
           <div class="card-body gap-4">
             <Formentation.Phoenix.fields form={@preview_form} />
             <div class="card-actions justify-end">
-              <button type="submit" class="btn btn-primary">Submit proposal</button>
+              <.button type="submit" color="primary">Submit proposal</.button>
             </div>
           </div>
         </.form>
