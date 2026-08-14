@@ -191,6 +191,72 @@ defmodule FrmnPlay.PlaygroundTest do
       assert Enum.map(applied.apply_errors, & &1.document) == [:declaration, :data]
       assert applied.form == session.form
     end
+
+    test "a JSON array data document is an apply error, not a crash" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_data("[]")
+        |> Playground.apply_sources()
+
+      assert [%{document: :data, message: _message}] = applied.apply_errors
+      assert applied.accepted_data == session.accepted_data
+      assert applied.form == session.form
+      assert Session.has_preview?(applied)
+    end
+
+    test "a JSON null data document is an apply error, not a crash" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_data("null")
+        |> Playground.apply_sources()
+
+      assert [%{document: :data, message: _message}] = applied.apply_errors
+      assert applied.accepted_data == session.accepted_data
+      assert Session.has_preview?(applied)
+    end
+
+    test "a JSON string data document is an apply error, not a crash" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_data(~s("foo"))
+        |> Playground.apply_sources()
+
+      assert [%{document: :data, message: _message}] = applied.apply_errors
+      assert applied.accepted_data == session.accepted_data
+      assert Session.has_preview?(applied)
+    end
+
+    test "a JSON array declaration document is an apply error, not a crash" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_declaration("[]")
+        |> Playground.apply_sources()
+
+      assert [%{document: :declaration, message: _message}] = applied.apply_errors
+      assert applied.accepted_declaration == session.accepted_declaration
+      assert Session.has_preview?(applied)
+    end
+
+    test "a JSON array presentation document is an apply error, not a crash" do
+      session = Playground.start_session()
+
+      applied =
+        session
+        |> Playground.edit_presentation("[]")
+        |> Playground.apply_sources()
+
+      assert [%{document: :presentation, message: _message}] = applied.apply_errors
+      assert applied.accepted_presentation == session.accepted_presentation
+      assert Session.has_preview?(applied)
+    end
   end
 
   describe "load_example/2" do

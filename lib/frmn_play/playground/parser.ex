@@ -23,8 +23,14 @@ defmodule FrmnPlay.Playground.Parser do
 
   defp decode(document, text) do
     case Jason.decode(text) do
-      {:ok, value} -> {:ok, value}
-      {:error, error} -> {:error, %{document: document, message: Exception.message(error)}}
+      {:ok, value} when is_map(value) ->
+        {:ok, value}
+
+      {:ok, value} ->
+        {:error, %{document: document, message: "must be a JSON object, got: #{inspect(value)}"}}
+
+      {:error, error} ->
+        {:error, %{document: document, message: Exception.message(error)}}
     end
   end
 end
