@@ -337,6 +337,63 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       assert has_element?(live, "#presentation-inline")
     end
 
+    test "the inline presentation panel is information, not a disabled control", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()
+
+      assert has_element?(live, "#presentation-inline h3", "Presentation")
+
+      for control <- ~w(input textarea select label) do
+        refute has_element?(live, "#presentation-inline #{control}"),
+               "the panel has no input semantics, so it must not render a <#{control}>"
+      end
+    end
+
+    # The M2 editing contracts are mode-agnostic in the implementation; these
+    # pin them in Map mode too, where the source text carries the quotes and
+    # `%{` braces that a whitespace or escaping regression would disturb.
+    test "textarea round-trip, dirty and revision contracts hold in map mode", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      html = live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()
+
+      params = Map.new(["declaration", "data"], &{&1, browser_textarea_value(html, &1)})
+      html = live |> form("#sources-form", params) |> render_change()
+
+      refute html =~ ~s(data-dirty="true")
+
+      for {name, value} <- params do
+        assert browser_textarea_value(html, name) == value
+      end
+
+      html =
+        live |> form("#sources-form", %{"declaration" => "%{kind: :object}"}) |> render_change()
+
+      assert html =~ ~s(data-dirty="true")
+      assert html =~ ~s(id="stale-banner")
+      # an unapplied edit leaves the preview and its revision alone
+      assert html =~ ~s(id="preview-2")
+
+      renamed =
+        String.replace(params["declaration"], ~s(title: "Talk title"), ~s(title: "Renamed title"))
+
+      html = live |> form("#sources-form", %{"declaration" => renamed}) |> render_submit()
+
+      assert html =~ "Renamed title"
+      assert html =~ ~s(id="preview-3")
+    end
+
+    test "switching away from map mode discards dirty edits", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()
+      live |> form("#sources-form", %{"declaration" => "%{"}) |> render_submit()
+
+      html = live |> form("#example-form", %{"example" => "talk-proposal"}) |> render_change()
+
+      refute html =~ ~s(data-dirty="true")
+      refute html =~ "Could not apply sources"
+      assert has_element?(live, "textarea[name=presentation]")
+    end
+
     test "map parse errors render on the Sources side under the editor's label", %{conn: conn} do
       {:ok, live, _html} = live(conn, ~p"/playground")
       live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()

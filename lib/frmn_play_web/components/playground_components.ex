@@ -37,7 +37,10 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
   def presentation_inline_panel(assigns) do
     ~H"""
     <div id="presentation-inline">
-      <.label>Presentation</.label>
+      <%!-- A heading, not a <.label>: this panel is information, not a
+      disabled editor, so there is no input for a label to point at. The
+      daisyUI `label` class keeps it aligned with the editor captions. --%>
+      <h3 class="label">Presentation</h3>
       <div class="card bg-base-200">
         <div class="card-body gap-1 py-4 text-sm">
           <p class="font-semibold">Defined inline</p>

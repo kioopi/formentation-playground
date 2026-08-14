@@ -208,8 +208,8 @@ defmodule FrmnPlay.Playground.Examples do
          title: "Contact address",
          required: ["city"],
          properties: [
-           {"street", %{kind: :string, title: "Street"}},
-           {"city", %{kind: :string, title: "City", min_length: 1}}
+           {"city", %{kind: :string, title: "City", min_length: 1}},
+           {"street", %{kind: :string, title: "Street"}}
          ]
        }}
     ],

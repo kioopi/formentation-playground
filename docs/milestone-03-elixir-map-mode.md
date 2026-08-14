@@ -260,8 +260,11 @@ existing but unapproved   → literal decoder refuses it
 
 `charlist_gate/2` is a minimal `literal_encoder` used **only** to reject
 single-quoted charlists: it returns `{:error, message}` when the
-literal's metadata carries `delimiter: "'"` and `{:ok, literal}` —
-leaving the AST completely unchanged — for everything else. This is
+literal's metadata carries `delimiter: "'"` (an ordinary charlist) or
+`delimiter: "'''"` (a charlist heredoc), and `{:ok, literal}` — leaving
+the AST completely unchanged — for everything else. Both delimiters have
+to be listed: Elixir accepts `'''…'''` as a heredoc charlist, and the
+metadata reports the opening delimiter as written. This is
 necessary because `'abc'` parses to the plain list `[97, 98, 99]`, which
 is indistinguishable from a typed integer list at the AST layer
 (verified); only the tokenizer sees the delimiter. `emit_warnings:
@@ -438,6 +441,18 @@ the same visible form, enabling direct side-by-side source comparison.
 Its description notes that the Map source declares semantic and
 presentation facts inline.
 
+"Substantially the same visible form" is an enforced invariant, not an
+aspiration: `examples_test.exs` compares the two examples' observable
+presentation — layout tree, labels, help, widgets, roles, value types,
+requiredness, options, defaults and constraints — and fails on drift.
+Provenance and validation are deliberately excluded: origins name JSON
+pointers on one side, and only the JSON Schema source carries a
+validation plan. One consequence is worth knowing before editing the
+pair: a JSON Schema `properties` object is decoded into a map, so nested
+field order is not the authored order (`contact` renders city before
+street). The Map twin's ordered `properties:` list has to match what the
+JSON twin actually renders, not what its source text reads.
+
 **`pump-inspection` — "Pump inspection."** Demonstrates Map syntax on
 its own terms rather than as "the JSON example rewritten": ordered
 `{name, spec}` pairs, `one_of`, `widget: :radio`/`:textarea`,
@@ -567,7 +582,8 @@ exhaustive blacklist.
 | Literal decoder | each accepted literal class; unary negative/positive numerics; pair tuples; keyword sugar; charlist rejection; map-update rejection; 3+-tuple rejection; calls, aliases, variables, captures, sigils, interpolation, structs, blocks, special forms all rejected; atom allowlist; **randomized unknown atom is not interned** (regression); byte/depth/node limits each with their distinct code |
 | `Parser` | `:map` dispatch; structured `invalid_elixir`; forbidden-node line/column where metadata exists and `nil` where it doesn't; `expected_map`; `input_too_large` on JSON documents too; existing JSON behavior unchanged |
 | Playground core | Map Session invariant (`presentation_* == nil`, never dirty); `edit_presentation` no-op on Map; successful/failed Map Apply; failed Apply preserves last good preview (M1 pinned rule, now for `:map`); Map compile omits `ui:`; all Map examples initialize; `unsupported-kind` data round-trips through submit |
-| LiveViewTest | selecting a Map example changes source; declaration/data editors present; presentation panel shows the inline explanation with no input; source-aware header; switching back to JSON Schema restores the third editor; dirty and diagnostics placement unchanged |
+| Examples | Map declarations stay formatter-clean so they are editable in the textarea; the `talk-proposal`/`talk-proposal-map` pair presents the same observable form (source-equivalence fixture) |
+| LiveViewTest | selecting a Map example changes source; declaration/data editors present; presentation panel shows the inline explanation with no input and no `<label>`; source-aware header; switching back to JSON Schema restores the third editor; textarea round-trip, dirty, revision and destructive switching pinned in Map mode too; diagnostics placement unchanged |
 | Playwright | JSON → Map example → edit Elixir declaration → Apply → interact → Submit → decoded instance → switch back to JSON Schema → actual browser textarea/form state is reset |
 
 ---
@@ -576,44 +592,44 @@ exhaustive blacklist.
 
 Milestone 3 is complete when all of the following are true:
 
-- [ ] No code path evaluates submitted text (`Code.eval_string/`
+- [x] No code path evaluates submitted text (`Code.eval_string/`
       `Code.eval_quoted` absent from the parser pipeline); the decoder
       reconstructs terms from validated AST.
-- [ ] The decoder is an acceptance whitelist: every AST node outside
+- [x] The decoder is an acceptance whitelist: every AST node outside
       the documented literal grammar is rejected with a structured
       error.
-- [ ] `Code.string_to_quoted/2` runs with `existing_atoms_only: true`;
+- [x] `Code.string_to_quoted/2` runs with `existing_atoms_only: true`;
       a test proves parsing an unknown atom does not intern it.
-- [ ] The playground atom vocabulary is the documented flat set; an
+- [x] The playground atom vocabulary is the documented flat set; an
       existing-but-unapproved atom yields `atom_not_allowed` listing
       the permitted atoms.
-- [ ] Per-document byte cap (64 KiB) is enforced before
+- [x] Per-document byte cap (64 KiB) is enforced before
       tokenization/decoding for **all** documents, JSON included, with
       code `input_too_large`.
-- [ ] Decoder depth/node limits (64 / 10,000) are enforced with
+- [x] Decoder depth/node limits (64 / 10,000) are enforced with
       distinct codes; Formentation's 16/1000 compile budgets are left
       untouched.
-- [ ] Parse errors for both families render through the one
+- [x] Parse errors for both families render through the one
       `parse_error_list` component with the shared error shape.
-- [ ] A Map Session holds no presentation document: `presentation_text`
+- [x] A Map Session holds no presentation document: `presentation_text`
       and both accepted presentation fields are `nil`,
       `presentation_dirty?` is always false, `edit_presentation/2` is a
       no-op, and compilation passes no `ui:`.
-- [ ] `Session.t()`/`Example.t()` are widened to
+- [x] `Session.t()`/`Example.t()` are widened to
       `:json_schema | :map`; instance data remains JSON in both modes.
-- [ ] Source switching is example-driven only; the selector groups
+- [x] Source switching is example-driven only; the selector groups
       examples by source and the header reflects the loaded source.
-- [ ] The three Map examples (`talk-proposal-map`, `pump-inspection`,
+- [x] The three Map examples (`talk-proposal-map`, `pump-inspection`,
       `unsupported-kind`) are registered; every registered example
       initializes successfully; `unsupported-kind` compiles with the
       expected accepted warning and its data round-trips on submit.
-- [ ] Map mode renders declaration and data editors plus the
+- [x] Map mode renders declaration and data editors plus the
       informational presentation panel (no input semantics); JSON
       Schema mode is visually unchanged.
-- [ ] All M2 contracts (DOM revision, dirty indicator, diagnostics
+- [x] All M2 contracts (DOM revision, dirty indicator, diagnostics
       placement, textarea whitespace, destructive switching, `preview`
       namespace) hold in both modes.
-- [ ] The Playwright exit scenario passes.
+- [x] The Playwright exit scenario passes.
 
 ---
 
