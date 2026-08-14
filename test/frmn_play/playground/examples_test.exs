@@ -10,12 +10,16 @@ defmodule FrmnPlay.Playground.ExamplesTest do
     assert example.title == "Talk proposal"
   end
 
-  test "example documents are valid JSON" do
-    example = Examples.default()
-
-    for text <- [example.declaration_text, example.presentation_text, example.data_text] do
+  test "all example documents are valid JSON" do
+    for example <- Examples.all(),
+        text <- [example.declaration_text, example.presentation_text, example.data_text] do
       assert {:ok, _decoded} = Jason.decode(text)
     end
+  end
+
+  test "all/0 lists exactly the three built-in examples in order" do
+    assert ["talk-proposal", "basic-fields", "unsupported-array"] =
+             Enum.map(Examples.all(), & &1.id)
   end
 
   test "get!/1 returns the example with the given id" do

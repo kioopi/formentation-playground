@@ -96,6 +96,60 @@ defmodule FrmnPlay.Playground.Examples do
   {"track": "Elixir"}
   """
 
+  @basic_fields_declaration """
+  {
+    "type": "object",
+    "title": "Basic fields",
+    "required": ["name"],
+    "properties": {
+      "name": {"type": "string", "title": "Name", "minLength": 1},
+      "age": {"type": "integer", "title": "Age"},
+      "rating": {"type": "number", "title": "Rating"},
+      "active": {"type": "boolean", "title": "Active"},
+      "category": {
+        "type": "string",
+        "title": "Category",
+        "enum": ["standard", "premium", "internal"]
+      },
+      "start_date": {"type": "string", "title": "Start date", "format": "date"}
+    }
+  }
+  """
+
+  @basic_fields_presentation """
+  {}
+  """
+
+  @basic_fields_data """
+  {}
+  """
+
+  @unsupported_array_declaration """
+  {
+    "type": "object",
+    "title": "Unsupported feature",
+    "properties": {
+      "title": {"type": "string", "title": "Title"},
+      "tags": {
+        "type": "array",
+        "title": "Tags",
+        "items": {"type": "string"}
+      }
+    }
+  }
+  """
+
+  @unsupported_array_presentation """
+  {}
+  """
+
+  @unsupported_array_data """
+  {
+    "title": "Existing record",
+    "tags": ["elixir", "phoenix"]
+  }
+  """
+
   @examples [
     %Example{
       id: "talk-proposal",
@@ -105,6 +159,26 @@ defmodule FrmnPlay.Playground.Examples do
       declaration_text: @talk_proposal_declaration,
       presentation_text: @talk_proposal_presentation,
       data_text: @talk_proposal_data
+    },
+    %Example{
+      id: "basic-fields",
+      title: "Basic fields",
+      description:
+        "What Formentation derives from JSON Schema alone, with no presentation customization.",
+      source: :json_schema,
+      declaration_text: @basic_fields_declaration,
+      presentation_text: @basic_fields_presentation,
+      data_text: @basic_fields_data
+    },
+    %Example{
+      id: "unsupported-array",
+      title: "Unsupported array",
+      description:
+        "An array property compiles as a preserve-only unsupported field with a warning diagnostic.",
+      source: :json_schema,
+      declaration_text: @unsupported_array_declaration,
+      presentation_text: @unsupported_array_presentation,
+      data_text: @unsupported_array_data
     }
   ]
 

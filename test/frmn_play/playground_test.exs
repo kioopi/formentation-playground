@@ -13,6 +13,44 @@ defmodule FrmnPlay.PlaygroundTest do
     end
   end
 
+  describe "built-in examples" do
+    test "every registered example loads successfully" do
+      session = Playground.start_session()
+
+      for example <- Playground.examples() do
+        loaded = Playground.load_example(session, example.id)
+        assert loaded.form != nil
+        assert loaded.apply_errors == []
+        assert loaded.apply_diagnostics == []
+      end
+    end
+
+    test "basic-fields compiles with zero diagnostics" do
+      session = Playground.load_example(Playground.start_session(), "basic-fields")
+      assert session.diagnostics == []
+    end
+
+    test "unsupported-array compiles with the expected accepted warning" do
+      session = Playground.load_example(Playground.start_session(), "unsupported-array")
+
+      assert [diagnostic] = session.diagnostics
+      assert diagnostic.severity == :warning
+      assert diagnostic.code == :unsupported_type
+      assert diagnostic.message =~ "tags"
+      assert diagnostic.origin == {:json_schema, "/properties/tags/type"}
+    end
+
+    test "unsupported-array preserves the initial array data through submit" do
+      session = Playground.load_example(Playground.start_session(), "unsupported-array")
+
+      submitted =
+        Playground.submit_preview(session, %{"title" => "Existing record"}).submitted
+
+      assert submitted["title"] == "Existing record"
+      assert submitted["tags"] == ["elixir", "phoenix"]
+    end
+  end
+
   describe "start_session/0" do
     test "loads the default example" do
       session = Playground.start_session()
