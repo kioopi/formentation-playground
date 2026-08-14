@@ -316,4 +316,25 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       refute html =~ ~s(id="stale-banner")
     end
   end
+
+  describe "map source mode" do
+    test "the selector groups examples by source", %{conn: conn} do
+      {:ok, live, html} = live(conn, ~p"/playground")
+      assert has_element?(live, "optgroup[label='JSON Schema']")
+      assert has_element?(live, "optgroup[label='Elixir Map']")
+      assert html =~ "Talk proposal (Map)"
+    end
+
+    test "selecting map mode swaps the presentation editor for the inline panel", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      html = live |> form("#example-form", %{"example" => "talk-proposal-map"}) |> render_change()
+
+      assert html =~ "Declared with the Elixir Map source"
+      assert html =~ "Defined inline"
+      assert has_element?(live, "textarea[name=declaration]")
+      assert has_element?(live, "textarea[name=data]")
+      refute has_element?(live, "textarea[name=presentation]")
+      assert has_element?(live, "#presentation-inline")
+    end
+  end
 end

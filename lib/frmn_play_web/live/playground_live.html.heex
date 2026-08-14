@@ -3,20 +3,22 @@
     <div>
       <h1 class="text-2xl font-bold">Formentation playground</h1>
       <p class="text-base-content/70">
-        Declared with the JSON Schema source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
+        Declared with the {source_label(@session.source)} source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
       </p>
     </div>
     <div class="flex items-end gap-2">
       <form id="example-form" phx-change="select-example">
         <.label for="example-select">Example</.label>
         <.select id="example-select" name="example" size="sm">
-          <option
-            :for={example <- Playground.examples()}
-            value={example.id}
-            selected={example.id == @session.example_id}
-          >
-            {example.title}
-          </option>
+          <optgroup :for={{source, examples} <- @examples_by_source} label={source_label(source)}>
+            <option
+              :for={example <- examples}
+              value={example.id}
+              selected={example.id == @session.example_id}
+            >
+              {example.title}
+            </option>
+          </optgroup>
         </.select>
         <p class="text-xs text-base-content/60">
           Selecting an example replaces the current sources.
@@ -39,17 +41,21 @@
         <.source_editor
           id={"declaration-editor-#{@dom_revision}"}
           name="declaration"
-          label="Schema"
+          label={declaration_label(@session.source)}
           value={@session.declaration_text}
           dirty={Playground.declaration_dirty?(@session)}
         />
-        <.source_editor
-          id={"presentation-editor-#{@dom_revision}"}
-          name="presentation"
-          label="Presentation"
-          value={@session.presentation_text}
-          dirty={Playground.presentation_dirty?(@session)}
-        />
+        <%= if @session.source == :map do %>
+          <.presentation_inline_panel />
+        <% else %>
+          <.source_editor
+            id={"presentation-editor-#{@dom_revision}"}
+            name="presentation"
+            label="Presentation"
+            value={@session.presentation_text}
+            dirty={Playground.presentation_dirty?(@session)}
+          />
+        <% end %>
         <.source_editor
           id={"data-editor-#{@dom_revision}"}
           name="data"
@@ -67,6 +73,7 @@
           <.parse_error_list
             :if={Playground.has_apply_errors?(@session)}
             errors={@session.apply_errors}
+            declaration_label={declaration_label(@session.source)}
           />
           <.diagnostic_list
             :if={Playground.has_apply_diagnostics?(@session)}

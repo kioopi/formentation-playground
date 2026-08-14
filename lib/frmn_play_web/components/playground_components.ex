@@ -33,7 +33,25 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
     """
   end
 
+  @doc "Shown when a Map declaration contains presentation inline."
+  def presentation_inline_panel(assigns) do
+    ~H"""
+    <div id="presentation-inline">
+      <.label>Presentation</.label>
+      <div class="card bg-base-200">
+        <div class="card-body gap-1 py-4 text-sm">
+          <p class="font-semibold">Defined inline</p>
+          <p class="text-base-content/70">
+            Map declarations contain their groups, roles and widget hints.
+          </p>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   attr :errors, :list, required: true
+  attr :declaration_label, :string, default: "Schema"
 
   def parse_error_list(assigns) do
     ~H"""
@@ -41,7 +59,7 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
       <.alert :for={error <- @errors} color="error" class="items-start text-sm">
         <div>
           <p class="font-semibold">
-            {document_label(error.document)}<span :if={error.line}> — line {error.line}, column {error.column}</span>
+            {document_label(error.document, @declaration_label)}<span :if={error.line}> — line {error.line}, column {error.column}</span>
           </p>
           <p class="font-mono">{error.message}</p>
         </div>
@@ -76,9 +94,9 @@ defmodule FrmnPlayWeb.PlaygroundComponents do
     """
   end
 
-  defp document_label(:declaration), do: "Schema"
-  defp document_label(:presentation), do: "Presentation"
-  defp document_label(:data), do: "Initial instance"
+  defp document_label(:declaration, label), do: label
+  defp document_label(:presentation, _), do: "Presentation"
+  defp document_label(:data, _), do: "Initial instance"
 
   defp severity_color(:error), do: "error"
   defp severity_color(:warning), do: "warning"

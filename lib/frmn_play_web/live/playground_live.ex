@@ -18,6 +18,7 @@ defmodule FrmnPlayWeb.PlaygroundLive do
     {:ok,
      socket
      |> assign(:dom_revision, 1)
+     |> assign(:examples_by_source, examples_by_source())
      |> assign_session(Playground.start_session())}
   end
 
@@ -82,6 +83,21 @@ defmodule FrmnPlayWeb.PlaygroundLive do
   end
 
   defp bump_dom_revision(socket), do: update(socket, :dom_revision, &(&1 + 1))
+
+  defp examples_by_source do
+    examples = Playground.examples()
+
+    examples
+    |> Enum.map(& &1.source)
+    |> Enum.uniq()
+    |> Enum.map(fn source -> {source, Enum.filter(examples, &(&1.source == source))} end)
+  end
+
+  defp source_label(:json_schema), do: "JSON Schema"
+  defp source_label(:map), do: "Elixir Map"
+
+  defp declaration_label(:json_schema), do: "Schema"
+  defp declaration_label(:map), do: "Declaration"
 
   defp format_json(instance), do: Jason.encode!(instance, pretty: true)
 end
