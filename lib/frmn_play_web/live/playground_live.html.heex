@@ -1,9 +1,21 @@
 <Layouts.app flash={@flash} container_class="mx-auto max-w-7xl space-y-6">
-  <div>
-    <h1 class="text-2xl font-bold">Formentation playground</h1>
-    <p class="text-base-content/70">
-      Declared with the JSON Schema source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
-    </p>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold">Formentation playground</h1>
+      <p class="text-base-content/70">
+        Declared with the JSON Schema source, rendered by <code class="text-sm">Formentation.Phoenix.fields/1</code>.
+      </p>
+    </div>
+    <div class="flex items-end gap-2">
+      <form id="example-form" phx-change="select-example">
+        <label for="example-select" class="label">Example</label>
+        <.select id="example-select" name="example" size="sm">
+          <option :for={example <- Playground.examples()} value={example.id} selected={example.id == @session.example_id}>{example.title}</option>
+        </.select>
+        <p class="text-xs text-base-content/60">Selecting an example replaces the current sources.</p>
+      </form>
+      <.button type="button" phx-click="reset-session" ghost size="sm">Reset example</.button>
+    </div>
   </div>
 
   <div class="grid gap-6 lg:grid-cols-2">

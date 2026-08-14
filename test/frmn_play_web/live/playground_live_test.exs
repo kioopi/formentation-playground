@@ -191,4 +191,39 @@ defmodule FrmnPlayWeb.PlaygroundLiveTest do
       assert html =~ "Schema: /properties/tags/type"
     end
   end
+
+  describe "example selector and reset" do
+    test "selecting an example replaces sources and preview and bumps the revision", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+
+      html = live |> form("#example-form", %{"example" => "basic-fields"}) |> render_change()
+
+      assert html =~ "Basic fields"
+      assert html =~ ~s(name="preview[name]")
+      refute html =~ ~s(name="preview[title]")
+      assert html =~ ~s(id="preview-2")
+      assert html =~ ~s(id="declaration-editor-2")
+    end
+
+    test "selecting an example discards dirty edits immediately", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      live |> form("#sources-form", %{"declaration" => "{ not json"}) |> render_change()
+
+      html = live |> form("#example-form", %{"example" => "basic-fields"}) |> render_change()
+
+      refute html =~ ~s(data-dirty="true")
+      refute html =~ "Could not apply sources"
+    end
+
+    test "reset restores the current example's baseline and bumps the revision", %{conn: conn} do
+      {:ok, live, _html} = live(conn, ~p"/playground")
+      live |> form("#sources-form", %{"declaration" => "{ not json"}) |> render_submit()
+
+      html = live |> element("button", "Reset example") |> render_click()
+
+      refute html =~ "Could not apply sources"
+      refute html =~ ~s(data-dirty="true")
+      assert html =~ ~s(id="preview-2")
+    end
+  end
 end

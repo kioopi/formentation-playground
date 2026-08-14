@@ -53,6 +53,20 @@ defmodule FrmnPlayWeb.PlaygroundLive do
     {:noreply, assign_session(socket, session)}
   end
 
+  def handle_event("select-example", %{"example" => example_id}, socket) do
+    {:noreply,
+     socket
+     |> bump_dom_revision()
+     |> assign_session(Playground.load_example(socket.assigns.session, example_id))}
+  end
+
+  def handle_event("reset-session", _params, socket) do
+    {:noreply,
+     socket
+     |> bump_dom_revision()
+     |> assign_session(Playground.reset_session(socket.assigns.session))}
+  end
+
   defp assign_session(socket, session) do
     socket
     |> assign(:session, session)

@@ -44,4 +44,26 @@ defmodule FrmnPlay.E2E.PlaygroundTest do
     |> click_button("Apply sources")
     |> assert_has("input[name='preview[duration_minutes]'][value='30']")
   end
+
+  test "switching examples replaces dirty editor and preview browser state", %{conn: conn} do
+    conn
+    |> visit("/playground")
+    |> fill_in("Initial instance", with: ~s({"track": "OTP"}))
+    |> fill_in("Talk title", with: "Dirty preview text")
+    |> select("Example", option: "Basic fields")
+    |> assert_has("h2", text: "Preview")
+    |> assert_has("input[name='preview[name]']")
+    |> refute_has("input[name='preview[title]'][value='Dirty preview text']")
+    |> refute_has("textarea[name='data']", text: "OTP")
+  end
+
+  test "Reset restores editor and preview browser state", %{conn: conn} do
+    conn
+    |> visit("/playground")
+    |> fill_in("Schema", with: "{ not json")
+    |> fill_in("Duration (minutes)", with: "60")
+    |> click_button("Reset example")
+    |> assert_has("textarea[name='declaration']", text: "Talk proposal")
+    |> assert_has("input[name='preview[duration_minutes]'][value='30']")
+  end
 end
