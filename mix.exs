@@ -13,6 +13,7 @@ defmodule FrmnPlay.MixProject do
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
       dialyzer: [plt_add_apps: [:ex_unit]],
+      test_coverage: [tool: Six],
       usage_rules: usage_rules()
     ]
   end
@@ -29,7 +30,14 @@ defmodule FrmnPlay.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test, ci: :test, "test.e2e": :test]
+      preferred_envs: [
+        precommit: :test,
+        ci: :test,
+        "test.e2e": :test,
+        six: :test,
+        "six.detail": :test,
+        "six.html": :test
+      ]
     ]
   end
 
@@ -43,25 +51,11 @@ defmodule FrmnPlay.MixProject do
   defp deps do
     [
       {:formentation, git: "https://github.com/kioopi/formentation.git", tag: "v0.2.0"},
-      {:phoenix_test_playwright, "~> 0.15", only: :test, runtime: false},
-      {:phoenix_test, "~> 0.12", only: :test, runtime: false},
-      {:daisy_ui_components, "~> 0.9"},
-      {:tidewave, "~> 0.8", only: [:dev]},
-      {:usage_rules, "~> 1.0", only: [:dev]},
-      {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false},
-      {:reach, "~> 2.0", only: [:dev, :test], runtime: false},
-      {:ex_dna, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:vibe_kit, "~> 0.1"},
       {:phoenix, "~> 1.8.9"},
       {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.2.0"},
-      {:lazy_html, ">= 0.1.0", only: :test},
+      {:daisy_ui_components, "~> 0.9"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",
@@ -83,7 +77,23 @@ defmodule FrmnPlay.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:tidewave, "~> 0.8", only: [:dev]},
+      {:usage_rules, "~> 1.0", only: [:dev]},
+      {:vibe_kit, "~> 0.1", only: :dev, runtime: false},
+      {:igniter, "~> 0.6", only: [:dev, :test]},
+      {:ex_slop, "~> 0.4", only: [:dev, :test], runtime: false},
+      {:reach, "~> 2.0", only: [:dev, :test], runtime: false},
+      {:ex_dna, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:phoenix_test_playwright, "~> 0.15", only: :test, runtime: false},
+      {:phoenix_test, "~> 0.12", only: :test, runtime: false},
+      {:six, "~> 0.4", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
     ]
   end
 

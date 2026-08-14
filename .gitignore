@@ -35,3 +35,21 @@ frmn_play-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# https://mise.jdx.dev/configuration.html
+# https://mise.jdx.dev/configuration/environments.html
+.mise.*.local.toml
+.mise.local.toml
+mise.*.local.toml
+mise.local.toml
+.mise/*.local.toml
+mise/*.local.toml
+
+.superpowers/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+.six/coverage.md
+
+# Local-only AI process docs (specs, plans, discussion) — not published
+/docs/superpowers/
+/docs/discussion/
