@@ -23,6 +23,9 @@ defmodule FrmnPlay.Playground.Session do
     rather than just a rendered message.
 
   The other field is always `[]` in each case.
+
+  On a `:map` Session all presentation fields are nil: presentation is
+  declared inline, and its dirty state is always false.
   """
 
   @enforce_keys [:source, :example_id]
@@ -61,7 +64,7 @@ defmodule FrmnPlay.Playground.Session do
   @type apply_error :: FrmnPlay.Playground.Parser.error()
 
   @type t :: %__MODULE__{
-          source: :json_schema,
+          source: :json_schema | :map,
           example_id: String.t(),
           declaration_text: String.t() | nil,
           presentation_text: String.t() | nil,
@@ -83,6 +86,8 @@ defmodule FrmnPlay.Playground.Session do
   def declaration_dirty?(%__MODULE__{} = s), do: s.declaration_text != s.accepted_declaration_text
 
   @spec presentation_dirty?(t()) :: boolean()
+  def presentation_dirty?(%__MODULE__{source: :map}), do: false
+
   def presentation_dirty?(%__MODULE__{} = s),
     do: s.presentation_text != s.accepted_presentation_text
 

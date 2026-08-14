@@ -89,8 +89,12 @@ defmodule FrmnPlay.Playground do
   @spec edit_declaration(Session.t(), String.t()) :: Session.t()
   def edit_declaration(%Session{} = session, text), do: %{session | declaration_text: text}
 
-  @doc "Replaces the current presentation editor text. Nothing is parsed or compiled."
+  @doc """
+  Replaces the current presentation editor text. Nothing is parsed or
+  compiled. A no-op on `:map` Sessions, which declare presentation inline.
+  """
   @spec edit_presentation(Session.t(), String.t()) :: Session.t()
+  def edit_presentation(%Session{source: :map} = session, _text), do: session
   def edit_presentation(%Session{} = session, text), do: %{session | presentation_text: text}
 
   @doc "Replaces the current data editor text. Nothing is parsed or compiled."
@@ -125,12 +129,7 @@ defmodule FrmnPlay.Playground do
   end
 
   defp apply_compiled(session, declaration, presentation, data) do
-    case Formentation.form(declaration,
-           adapter: session.source,
-           ui: presentation,
-           data: data,
-           defaults: :apply
-         ) do
+    case Formentation.form(declaration, compile_opts(session.source, presentation, data)) do
       {:ok, form, diagnostics} ->
         %{
           session
@@ -152,13 +151,23 @@ defmodule FrmnPlay.Playground do
     end
   end
 
-  defp parse_documents(%Session{source: source} = session) do
-    parses = [
-      Parser.parse_declaration(source, session.declaration_text),
-      Parser.parse_presentation(source, session.presentation_text),
+  defp parse_documents(%Session{source: :map} = session) do
+    collect_parses([
+      Parser.parse_declaration(:map, session.declaration_text),
+      {:ok, nil},
       Parser.parse_data(session.data_text)
-    ]
+    ])
+  end
 
+  defp parse_documents(%Session{source: :json_schema} = session) do
+    collect_parses([
+      Parser.parse_declaration(:json_schema, session.declaration_text),
+      Parser.parse_presentation(:json_schema, session.presentation_text),
+      Parser.parse_data(session.data_text)
+    ])
+  end
+
+  defp collect_parses(parses) do
     case for {:error, error} <- parses, do: error do
       [] ->
         [{:ok, declaration}, {:ok, presentation}, {:ok, data}] = parses
@@ -168,6 +177,12 @@ defmodule FrmnPlay.Playground do
         {:error, errors}
     end
   end
+
+  defp compile_opts(:json_schema, presentation, data),
+    do: [adapter: :json_schema, ui: presentation, data: data, defaults: :apply]
+
+  defp compile_opts(:map, _presentation, data),
+    do: [adapter: :map, data: data, defaults: :apply]
 
   @doc """
   Replaces the whole Session with a freshly initialized one for the given

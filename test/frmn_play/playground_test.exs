@@ -356,6 +356,79 @@ defmodule FrmnPlay.PlaygroundTest do
     end
   end
 
+  describe "map source mode" do
+    @map_declaration """
+    %{
+      kind: :object,
+      title: "Map demo",
+      required: ["name"],
+      properties: [{"name", %{kind: :string, title: "Name", min_length: 1}}]
+    }
+    """
+
+    defp map_session do
+      Playground.apply_sources(%Session{
+        source: :map,
+        example_id: "map-test",
+        declaration_text: @map_declaration,
+        presentation_text: nil,
+        data_text: ~s({"name": "Ada"})
+      })
+    end
+
+    test "applies without a presentation document" do
+      session = map_session()
+
+      assert session.apply_errors == []
+      assert session.apply_diagnostics == []
+      assert %Formentation.Form{} = session.form
+      assert session.diagnostics == []
+      assert %{kind: :object} = session.accepted_declaration
+      assert session.accepted_presentation_text == nil
+      assert session.accepted_presentation == nil
+      refute Playground.dirty?(session)
+    end
+
+    test "presentation edits are ignored and never dirty" do
+      session = map_session()
+      edited = Playground.edit_presentation(session, ~s({"anything": true}))
+
+      assert edited == session
+      assert edited.presentation_text == nil
+      refute Playground.presentation_dirty?(edited)
+    end
+
+    test "failed parses retain the last accepted preview" do
+      session = map_session()
+
+      failed =
+        session
+        |> Playground.edit_declaration("foo()")
+        |> Playground.apply_sources()
+
+      assert [%{document: :declaration, code: :forbidden_syntax}] = failed.apply_errors
+      assert failed.apply_diagnostics == []
+      assert failed.form == session.form
+      assert failed.accepted_declaration == session.accepted_declaration
+      assert failed.diagnostics == session.diagnostics
+    end
+
+    test "compile failures and submissions use the Map adapter" do
+      bad = ~s(%{kind: :object, properties: [{"x", %{kind: :string, title: 5}}]})
+
+      failed =
+        map_session()
+        |> Playground.edit_declaration(bad)
+        |> Playground.apply_sources()
+
+      assert failed.apply_errors == []
+      assert [%Formentation.Diagnostic{severity: :error} | _] = failed.apply_diagnostics
+
+      submitted = Playground.submit_preview(map_session(), %{"name" => "Grace"})
+      assert submitted.submitted == %{"name" => "Grace"}
+    end
+  end
+
   defp valid_params do
     %{
       "title" => "Formentation in anger",
