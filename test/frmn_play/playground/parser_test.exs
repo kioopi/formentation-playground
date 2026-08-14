@@ -58,4 +58,44 @@ defmodule FrmnPlay.Playground.ParserTest do
       assert {:ok, %{"track" => "Elixir"}} = Parser.parse_data(~s({"track": "Elixir"}))
     end
   end
+
+  describe "structured error positions" do
+    test "invalid JSON reports code, byte position, line and column" do
+      text = "{\n  \"a\": nope\n}"
+
+      assert {:error, error} = Parser.parse_declaration(:json_schema, text)
+
+      assert %{
+               document: :declaration,
+               code: :invalid_json,
+               position: position,
+               line: 2,
+               column: column
+             } = error
+
+      assert is_integer(position)
+      assert column >= 8
+      assert error.message =~ "unexpected"
+    end
+
+    test "invalid JSON on the first line reports line 1" do
+      assert {:error, %{line: 1, column: column}} = Parser.parse_data("{\"a\" nope}")
+
+      assert is_integer(column)
+    end
+
+    test "wrong top-level shape reports :expected_object with nil position" do
+      assert {:error, error} = Parser.parse_data("[]")
+
+      assert %{
+               document: :data,
+               code: :expected_object,
+               position: nil,
+               line: nil,
+               column: nil
+             } = error
+
+      assert error.message =~ "JSON object"
+    end
+  end
 end
